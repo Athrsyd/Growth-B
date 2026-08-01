@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Analisis;
 use App\Models\Bisnis;
 use App\Models\DataHarian;
+use App\Models\Roadmap;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -12,12 +13,11 @@ use Illuminate\Support\Facades\Http;
 
 class AnalisisController extends Controller
 {
-    // Durasi siklus analisa dalam hari
     const SIKLUS_HARI = 14;
 
     public function index(Request $request)
     {
-        $page = $request->input('page', 1);
+        $page     = $request->input('page', 1);
         $per_page = $request->input('per_page', 25);
 
         $userId = Auth::user()->id;
@@ -27,55 +27,54 @@ class AnalisisController extends Controller
             return $this->error('Bisnis tidak ditemukan', 404);
         }
 
-        $analisa = Analisis::where('bisnis_id', $bisnis->id)
+        $Analisis = Analisis::where('bisnis_id', $bisnis->id)
             ->latest()
             ->paginate($per_page, ['*'], 'page', $page);
 
         $data = [
-            'currentPage' => $analisa->currentPage(),
-            'data' => $analisa->map(fn($item) => [
-                'id' => $item->id,
-                'bisnis_id' => $item->bisnis_id,
-                'tipe_eval' => $item->tipe_eval,
-                'pesan' => $item->pesan,
+            'currentPage' => $Analisis->currentPage(),
+            'data'        => $Analisis->map(fn($item) => [
+                'id'         => $item->id,
+                'bisnis_id'  => $item->bisnis_id,
+                'tipe_eval'  => $item->tipe_eval,
+                'pesan'      => $item->pesan,
                 'created_at' => $item->created_at,
                 'updated_at' => $item->updated_at,
             ]),
-            'from' => $analisa->firstItem(),
-            'last_page' => $analisa->lastPage(),
-            'to' => $analisa->lastItem(),
-            'total' => $analisa->total(),
+            'from'      => $Analisis->firstItem(),
+            'last_page' => $Analisis->lastPage(),
+            'to'        => $Analisis->lastItem(),
+            'total'     => $Analisis->total(),
         ];
 
-        return $this->success('Data analisa berhasil diambil', $data);
+        return $this->success('Data Analisis berhasil diambil', $data);
     }
 
     public function show(int $id)
     {
-        $userId = Auth::user()->id;
-        $analisa = Analisis::find($id);
+        $userId  = Auth::user()->id;
+        $Analisis = Analisis::find($id);
 
-        if (!$analisa) {
-            return $this->error('Analisa tidak ditemukan', 404);
+        if (!$Analisis) {
+            return $this->error('Analisis tidak ditemukan', 404);
         }
 
-        if ($analisa->bisnis->user_id !== $userId) {
+        if ($Analisis->bisnis->user_id !== $userId) {
             return $this->error('Akses Dilarang', 403);
         }
 
         $data = [
-            'id' => $analisa->id,
-            'bisnis_id' => $analisa->bisnis_id,
-            'tipe_eval' => $analisa->tipe_eval,
-            'pesan' => $analisa->pesan,
-            'created_at' => $analisa->created_at,
-            'updated_at' => $analisa->updated_at,
+            'id'         => $Analisis->id,
+            'bisnis_id'  => $Analisis->bisnis_id,
+            'tipe_eval'  => $Analisis->tipe_eval,
+            'pesan'      => $Analisis->pesan,
+            'created_at' => $Analisis->created_at,
+            'updated_at' => $Analisis->updated_at,
         ];
 
-        return $this->success('Data analisa berhasil diambil', ['data' => $data]);
+        return $this->success('Data Analisis berhasil diambil', ['data' => $data]);
     }
 
-    // Ambil analisa terbaru (eval + plan sekaligus)
     public function latest()
     {
         $userId = Auth::user()->id;
@@ -89,22 +88,13 @@ class AnalisisController extends Controller
         $plan = Analisis::where('bisnis_id', $bisnis->id)->rencana()->latest()->first();
 
         $data = [
-            'eval' => $eval ? [
-                'id' => $eval->id,
-                'pesan' => $eval->pesan,
-                'created_at' => $eval->created_at,
-            ] : null,
-            'plan' => $plan ? [
-                'id' => $plan->id,
-                'pesan' => $plan->pesan,
-                'created_at' => $plan->created_at,
-            ] : null,
+            'eval' => $eval ? ['id' => $eval->id, 'pesan' => $eval->pesan, 'created_at' => $eval->created_at] : null,
+            'plan' => $plan ? ['id' => $plan->id, 'pesan' => $plan->pesan, 'created_at' => $plan->created_at] : null,
         ];
 
-        return $this->success('Analisa terbaru berhasil diambil', ['data' => $data]);
+        return $this->success('Analisis terbaru berhasil diambil', ['data' => $data]);
     }
 
-    // Cek status siklus analisa saat ini
     public function status()
     {
         $userId = Auth::user()->id;
@@ -114,11 +104,11 @@ class AnalisisController extends Controller
             return $this->error('Bisnis tidak ditemukan', 404);
         }
 
-        $periodeInfo = $this->hitungPeriodeSaatIni($bisnis);
-        $sudahAdaAnalisa = Analisis::where('bisnis_id', $bisnis->id)
+        $periodeInfo     = $this->hitungPeriodeSaatIni($bisnis);
+        $sudahAdaAnalisis = Analisis::where('bisnis_id', $bisnis->id)
             ->whereBetween('created_at', [
-                $periodeInfo['dari']->startOfDay(),
-                $periodeInfo['sampai']->endOfDay(),
+                $periodeInfo['dari']->copy()->startOfDay(),
+                $periodeInfo['sampai']->copy()->endOfDay(),
             ])
             ->exists();
 
@@ -131,21 +121,20 @@ class AnalisisController extends Controller
 
         $data = [
             'periode' => [
-                'dari' => $periodeInfo['dari']->toDateString(),
-                'sampai' => $periodeInfo['sampai']->toDateString(),
+                'dari'      => $periodeInfo['dari']->toDateString(),
+                'sampai'    => $periodeInfo['sampai']->toDateString(),
                 'siklus_ke' => $periodeInfo['siklus_ke'],
             ],
-            'jumlah_data_terisi' => $jumlahDataTerisi,
-            'jumlah_data_dibutuhkan' => self::SIKLUS_HARI,
-            'data_lengkap' => $jumlahDataTerisi === self::SIKLUS_HARI,
-            'sudah_dianalisa' => $sudahAdaAnalisa,
-            'bisa_generate' => !$sudahAdaAnalisa && $jumlahDataTerisi === self::SIKLUS_HARI,
+            'jumlah_data_terisi'    => $jumlahDataTerisi,
+            'jumlah_data_dibutuhkan'=> self::SIKLUS_HARI,
+            'data_lengkap'          => $jumlahDataTerisi === self::SIKLUS_HARI,
+            'sudah_diAnalisis'       => $sudahAdaAnalisis,
+            'bisa_generate'         => !$sudahAdaAnalisis && $jumlahDataTerisi === self::SIKLUS_HARI,
         ];
 
-        return $this->success('Status analisa berhasil diambil', ['data' => $data]);
+        return $this->success('Status Analisis berhasil diambil', ['data' => $data]);
     }
 
-    // Generate analisa otomatis berdasarkan siklus 14 hari
     public function generate()
     {
         $userId = Auth::user()->id;
@@ -155,33 +144,31 @@ class AnalisisController extends Controller
             return $this->error('Bisnis tidak ditemukan', 404);
         }
 
-        // Hitung periode siklus saat ini
         $periodeInfo = $this->hitungPeriodeSaatIni($bisnis);
-        $dari = $periodeInfo['dari']->toDateString();
-        $sampai = $periodeInfo['sampai']->toDateString();
+        $dari        = $periodeInfo['dari']->toDateString();
+        $sampai      = $periodeInfo['sampai']->toDateString();
 
-        // Cek apakah periode ini sudah pernah dianalisa
-        $sudahAdaAnalisa = Analisis::where('bisnis_id', $bisnis->id)
+        // Cek sudah diAnalisis di siklus ini
+        $sudahAdaAnalisis = Analisis::where('bisnis_id', $bisnis->id)
             ->whereBetween('created_at', [
-                $periodeInfo['dari']->startOfDay(),
-                $periodeInfo['sampai']->endOfDay(),
+                $periodeInfo['dari']->copy()->startOfDay(),
+                $periodeInfo['sampai']->copy()->endOfDay(),
             ])
             ->exists();
 
-        if ($sudahAdaAnalisa) {
+        if ($sudahAdaAnalisis) {
             return $this->error(
-                "Periode ini ({$dari} s/d {$sampai}) sudah pernah dianalisa. Analisa berikutnya tersedia pada siklus berikutnya.",
+                "Periode ini ({$dari} s/d {$sampai}) sudah pernah diAnalisis. Analisis berikutnya tersedia pada siklus berikutnya.",
                 422
             );
         }
 
-        // Ambil semua data harian dalam periode
-        $dataHarian = DataHarian::where('bisnis_id', $bisnis->id)
+        // Validasi kelengkapan data harian
+        $dataHarian   = DataHarian::where('bisnis_id', $bisnis->id)
             ->periodeEvaluasi($dari, $sampai)
             ->with('produkTerlaris')
             ->get();
 
-        // Validasi: semua 14 hari harus terisi
         $jumlahTerisi = $dataHarian->count();
         if ($jumlahTerisi < self::SIKLUS_HARI) {
             $kurang = self::SIKLUS_HARI - $jumlahTerisi;
@@ -191,67 +178,58 @@ class AnalisisController extends Controller
             );
         }
 
-        // Susun ringkasan data untuk AI
-        $totalPendapatan = $dataHarian->sum('pendapatan');
+        // Ringkasan data performa
+        $totalPendapatan  = $dataHarian->sum('pendapatan');
         $totalPengeluaran = $dataHarian->sum('pengeluaran');
-        $totalPembeli = $dataHarian->sum('jumlah_pembeli');
-        $kendalaList = $dataHarian->whereNotNull('kendala')->pluck('kendala')->implode('; ');
-
-        $konteksBisnis = "
-            Nama bisnis: {$bisnis->bisnis_nama}
-            Tipe: {$bisnis->bisnis_tipe}
-            Target market: {$bisnis->target_market}
-            Tujuan bisnis: " . implode(', ', $bisnis->tujuan_bisnis) . "
-            Jumlah pegawai: {$bisnis->jumlah_pegawai}
-        ";
+        $totalPembeli     = $dataHarian->sum('jumlah_pembeli');
+        $kendalaList      = $dataHarian->whereNotNull('kendala')->pluck('kendala')->implode('; ');
 
         $ringkasanData = "
-            Periode: {$dari} s/d {$sampai} (14 hari)
-            Total pendapatan: Rp " . number_format($totalPendapatan, 0, ',', '.') . "
-            Total pengeluaran: Rp " . number_format($totalPengeluaran, 0, ',', '.') . "
-            Total laba: Rp " . number_format($totalPendapatan - $totalPengeluaran, 0, ',', '.') . "
-            Rata-rata pendapatan/hari: Rp " . number_format($totalPendapatan / self::SIKLUS_HARI, 0, ',', '.') . "
-            Rata-rata pembeli/hari: " . round($totalPembeli / self::SIKLUS_HARI) . "
-            Kendala yang tercatat: " . ($kendalaList ?: 'tidak ada') . "
-        ";
+Periode: {$dari} s/d {$sampai} (14 hari)
+Total pendapatan: Rp " . number_format($totalPendapatan, 0, ',', '.') . "
+Total pengeluaran: Rp " . number_format($totalPengeluaran, 0, ',', '.') . "
+Total laba: Rp " . number_format($totalPendapatan - $totalPengeluaran, 0, ',', '.') . "
+Rata-rata pendapatan/hari: Rp " . number_format($totalPendapatan / self::SIKLUS_HARI, 0, ',', '.') . "
+Rata-rata pembeli/hari: " . round($totalPembeli / self::SIKLUS_HARI) . "
+Kendala yang tercatat: " . ($kendalaList ?: 'tidak ada');
+
+        // Bangun konteks orientasi: roadmap aktif ATAU tujuan bisnis
+        $konteksOrientasi = $this->buildKonteksOrientasi($bisnis);
 
         $prompt = "
-            Kamu adalah konsultan bisnis UMKM yang berpengalaman.
-            Berikut data bisnis dan performa periode ini:
+Kamu adalah konsultan bisnis UMKM yang berpengalaman.
 
-            === PROFIL BISNIS ===
-            {$konteksBisnis}
+=== PROFIL BISNIS ===
+Nama bisnis: {$bisnis->bisnis_nama}
+Tipe: {$bisnis->bisnis_tipe}
+Target market: {$bisnis->target_market}
+Jumlah pegawai: {$bisnis->jumlah_pegawai}
 
-            === DATA PERFORMA ===
-            {$ringkasanData}
+=== DATA PERFORMA 14 HARI ===
+{$ringkasanData}
 
-            Berikan:
-            1. EVALUASI: Analisis performa bisnis pada periode ini secara ringkas dan jelas (maks 200 kata).
-            2. REKOMENDASI: 3 langkah konkret yang bisa dilakukan pemilik UMKM untuk periode berikutnya (maks 200 kata).
+{$konteksOrientasi['teks']}
 
-            Format jawaban:
-            EVALUASI:
-            [isi evaluasi]
+=== TUGAS ===
+Berikan evaluasi dan rekomendasi bisnis periode ini.
+PENTING: {$konteksOrientasi['instruksi']}
 
-            REKOMENDASI:
-            [isi rekomendasi]
+Format jawaban:
+EVALUASI:
+[Analisis performa bisnis periode ini, kaitkan dengan orientasi di atas, maks 200 kata]
 
-            Gunakan bahasa Indonesia yang sederhana, mudah dipahami pelaku UMKM.
+REKOMENDASI:
+[3 langkah konkret untuk periode berikutnya yang mengarah pada pencapaian orientasi di atas, maks 200 kata]
+
+Gunakan bahasa Indonesia yang sederhana dan mudah dipahami pelaku UMKM.
         ";
 
-        // Panggil Gemini 2.5 Flash API
-        $apiKey = config('services.gemini.api_key');
-        $response = Http::withHeaders([
-            'Content-Type' => 'application/json',
-        ])->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={$apiKey}", [
-            'contents' => [
-                ['parts' => [['text' => $prompt]]]
-            ],
-            'generationConfig' => [
-                'maxOutputTokens' => 1024,
-                'temperature' => 0.7,
-            ],
-        ]);
+        $apiKey   = config('services.gemini.api_key');
+        $response = Http::withHeaders(['Content-Type' => 'application/json'])
+            ->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={$apiKey}", [
+                'contents'         => [['parts' => [['text' => $prompt]]]],
+                'generationConfig' => ['maxOutputTokens' => 1024, 'temperature' => 0.7],
+            ]);
 
         if (!$response->successful()) {
             return $this->error('Gagal menghubungi layanan AI', 500);
@@ -263,18 +241,16 @@ class AnalisisController extends Controller
             return $this->error('Respons AI tidak valid', 500);
         }
 
-        // Pisahkan evaluasi dan rekomendasi
         preg_match('/EVALUASI:\s*(.*?)\s*REKOMENDASI:/s', $aiResponse, $evalMatch);
         preg_match('/REKOMENDASI:\s*(.*)/s', $aiResponse, $planMatch);
 
         $pesanEval = trim($evalMatch[1] ?? $aiResponse);
         $pesanPlan = trim($planMatch[1] ?? '');
 
-        // Simpan ke DB
         $eval = Analisis::create([
             'bisnis_id' => $bisnis->id,
             'tipe_eval' => 'eval',
-            'pesan' => $pesanEval,
+            'pesan'     => $pesanEval,
         ]);
 
         $plan = null;
@@ -282,66 +258,106 @@ class AnalisisController extends Controller
             $plan = Analisis::create([
                 'bisnis_id' => $bisnis->id,
                 'tipe_eval' => 'plan',
-                'pesan' => $pesanPlan,
+                'pesan'     => $pesanPlan,
             ]);
         }
 
         $data = [
-            'periode' => ['dari' => $dari, 'sampai' => $sampai],
+            'periode'          => ['dari' => $dari, 'sampai' => $sampai],
+            'orientasi_pakai'  => $konteksOrientasi['sumber'], // 'roadmap' atau 'tujuan_bisnis'
             'eval' => [
-                'id' => $eval->id,
-                'pesan' => $eval->pesan,
+                'id'         => $eval->id,
+                'pesan'      => $eval->pesan,
                 'created_at' => $eval->created_at,
             ],
             'plan' => $plan ? [
-                'id' => $plan->id,
-                'pesan' => $plan->pesan,
+                'id'         => $plan->id,
+                'pesan'      => $plan->pesan,
                 'created_at' => $plan->created_at,
             ] : null,
         ];
 
-        return $this->success('Analisa berhasil digenerate', ['data' => $data], 201);
+        return $this->success('Analisis berhasil digenerate', ['data' => $data], 201);
     }
 
     public function destroy(int $id)
     {
-        $userId = Auth::user()->id;
-        $analisa = Analisis::find($id);
+        $userId  = Auth::user()->id;
+        $Analisis = Analisis::find($id);
 
-        if (!$analisa) {
-            return $this->error('Analisa tidak ditemukan', 404);
+        if (!$Analisis) {
+            return $this->error('Analisis tidak ditemukan', 404);
         }
 
-        if ($analisa->bisnis->user_id !== $userId) {
+        if ($Analisis->bisnis->user_id !== $userId) {
             return $this->error('Akses Dilarang', 403);
         }
 
-        $analisa->delete();
-        return $this->success('Analisa berhasil dihapus');
+        $Analisis->delete();
+        return $this->success('Analisis berhasil dihapus');
     }
 
     // -------------------------
-    // Helper
+    // Helpers
     // -------------------------
 
     /**
+     * Bangun konteks orientasi untuk prompt AI.
+     * Prioritas: roadmap aktif → tujuan bisnis dari profil.
+     */
+    private function buildKonteksOrientasi(Bisnis $bisnis): array
+    {
+        $roadmaps = Roadmap::where('bisnis_id', $bisnis->id)->aktif()->get();
+
+        if ($roadmaps->isNotEmpty()) {
+            // Pakai roadmap aktif
+            $baris = $roadmaps->map(function ($r) {
+                $targetNilai   = $r->target_nilai
+                    ? 'Rp ' . number_format($r->target_nilai, 0, ',', '.')
+                    : '-';
+                $targetTanggal = $r->target_tanggal
+                    ? $r->target_tanggal->toDateString()
+                    : 'tidak ditentukan';
+
+                return "- {$r->judul}" .
+                    ($r->target_metrik ? " | target {$r->target_metrik}: {$targetNilai}" : '') .
+                    " | deadline: {$targetTanggal}";
+            })->implode("\n");
+
+            return [
+                'sumber'    => 'roadmap',
+                'teks'      => "=== ROADMAP AKTIF (orientasi Analisis) ===\n{$baris}",
+                'instruksi' => 'Evaluasi dan rekomendasi HARUS berorientasi pada roadmap aktif di atas. Nilai seberapa jauh performa saat ini mendukung pencapaian setiap target roadmap, dan arahkan rekomendasi untuk mempercepat pencapaiannya.',
+            ];
+        }
+
+        // Fallback: pakai tujuan bisnis dari profil
+        $tujuan = implode(', ', $bisnis->tujuan_bisnis);
+
+        return [
+            'sumber'    => 'tujuan_bisnis',
+            'teks'      => "=== TUJUAN BISNIS (orientasi Analisis) ===\n{$tujuan}",
+            'instruksi' => 'Evaluasi dan rekomendasi HARUS berorientasi pada tujuan bisnis di atas. Nilai seberapa jauh performa saat ini mendukung tujuan tersebut, dan arahkan rekomendasi untuk lebih mendekat ke tujuan itu.',
+        ];
+    }
+
+    /**
      * Hitung periode siklus 14 hari saat ini berdasarkan tanggal mulai bisnis.
-     * Contoh: bisnis_mulai = 1 Juli, siklus 1 = 1-14 Juli, siklus 2 = 15-28 Juli, dst.
      */
     private function hitungPeriodeSaatIni(Bisnis $bisnis): array
     {
-        $mulai = Carbon::parse($bisnis->bisnis_mulai)->startOfDay();
+        $mulai    = Carbon::parse($bisnis->bisnis_mulai)->startOfDay();
         $sekarang = Carbon::now()->startOfDay();
 
         $selisihHari = $mulai->diffInDays($sekarang);
-        $siklusKe = (int) floor($selisihHari / self::SIKLUS_HARI) + 1;
+        $siklusKe    = (int) floor($selisihHari / self::SIKLUS_HARI) + 1;
 
         $periodeStart = $mulai->copy()->addDays(($siklusKe - 1) * self::SIKLUS_HARI);
-        $periodeEnd = $periodeStart->copy()->addDays(self::SIKLUS_HARI - 1);
+        $periodeEnd   = $periodeStart->copy()->addDays(self::SIKLUS_HARI - 1);
 
         return [
-            'dari' => $periodeStart,
-            'sampai' => $periodeEnd,
+            'dari'      => $periodeStart,
+            'sampai'    => $periodeEnd,
             'siklus_ke' => $siklusKe,
         ];
     }

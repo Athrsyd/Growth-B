@@ -12,6 +12,7 @@ class DataHarian extends Model
  
     protected $fillable = [
         'bisnis_id',
+        'is_libur',
         'tanggal',
         'pendapatan',
         'pengeluaran',

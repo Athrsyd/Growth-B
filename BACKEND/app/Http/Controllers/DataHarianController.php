@@ -24,6 +24,7 @@ class DataHarianController extends Controller
         if (!$bisnis) {
             return $this->error('Bisnis tidak ditemukan', 404);
         }
+        
 
         $dataHarian = DataHarian::where('bisnis_id', $bisnis->id)
             ->when($month, function ($q) use ($month) {
@@ -32,9 +33,21 @@ class DataHarianController extends Controller
             ->when($year, function ($q) use ($year) {
                 $q->whereYear('tanggal', $year);
             })
+            ->where('is_libur', false) 
             ->with('produkTerlaris')
             ->latest('tanggal')
             ->paginate($per_page, ['*'], 'page', $page);
+
+        $hariLibur = DataHarian::where('bisnis_id', $bisnis->id)
+            ->when($month, function ($q) use ($month) {
+                $q->whereMonth('tanggal', $month);
+            })
+            ->when($year, function ($q) use ($year) {
+                $q->whereYear('tanggal', $year);
+            })
+            ->where('is_libur', true)
+            ->groupBy('tanggal')
+            ->get(['tanggal']);
 
         $data = [
             'currentPage' => $dataHarian->currentPage(),
@@ -56,6 +69,7 @@ class DataHarianController extends Controller
             'last_page' => $dataHarian->lastPage(),
             'to' => $dataHarian->lastItem(),
             'total' => $dataHarian->total(),
+            'hari_libur' => $hariLibur->pluck('tanggal')->toArray(),
         ];
 
         return $this->success('Data harian berhasil diambil', $data);
@@ -93,6 +107,21 @@ class DataHarianController extends Controller
             if ($produk->bisnis_id !== $bisnis->id) {
                 return $this->error('Produk tidak ditemukan', 404);
             }
+        }
+
+        if (DataHarian::where('bisnis_id', $bisnis->id)->where('tanggal', $request->tanggal)->exists()) {
+            return $this->error('Data harian untuk tanggal ini sudah ada', 400);
+        }
+
+        if($request->is_libur){
+            DataHarian::create([
+                'bisnis_id' => $bisnis->id,
+                'tanggal' => $request->tanggal,
+                'is_libur' => true,
+                'pendapatan' => 0,
+                'pengeluaran' => 0,
+                'jumlah_pembeli' => 0,
+            ]);
         }
 
         $dataHarian = DataHarian::create([

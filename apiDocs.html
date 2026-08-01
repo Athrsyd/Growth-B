@@ -1,1269 +1,1992 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GrowthB API Docs</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
-
-  :root {
-    --bg: #0f1117;
-    --surface: #181c27;
-    --surface2: #1e2333;
-    --border: #2a3045;
-    --accent: #5b8def;
-    --accent2: #3ecf8e;
-    --warn: #f59e0b;
-    --danger: #ef4444;
-    --text: #e2e8f0;
-    --text2: #8892a4;
-    --text3: #4a5568;
-    --GET: #3ecf8e;
-    --POST: #5b8def;
-    --PUT: #f59e0b;
-    --DELETE: #ef4444;
-  }
-
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    font-family: 'Inter', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    display: flex;
-    min-height: 100vh;
-  }
-
-  /* Sidebar */
-  aside {
-    width: 260px;
-    min-height: 100vh;
-    background: var(--surface);
-    border-right: 1px solid var(--border);
-    position: fixed;
-    top: 0; left: 0; bottom: 0;
-    overflow-y: auto;
-    padding: 24px 0;
-  }
-
-  .logo {
-    padding: 0 20px 24px;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 16px;
-  }
-
-  .logo h1 {
-    font-size: 18px;
-    font-weight: 600;
-    color: var(--text);
-    letter-spacing: -0.3px;
-  }
-
-  .logo p {
-    font-size: 11px;
-    color: var(--text2);
-    margin-top: 2px;
-    font-family: 'JetBrains Mono', monospace;
-  }
-
-  .nav-group { margin-bottom: 4px; }
-
-  .nav-group-label {
-    font-size: 10px;
-    font-weight: 600;
-    color: var(--text3);
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    padding: 8px 20px 4px;
-  }
-
-  .nav-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 7px 20px;
-    font-size: 13px;
-    color: var(--text2);
-    cursor: pointer;
-    border-radius: 0;
-    transition: all 0.15s;
-    border-left: 2px solid transparent;
-  }
-
-  .nav-item:hover { color: var(--text); background: var(--surface2); }
-  .nav-item.active { color: var(--accent); border-left-color: var(--accent); background: rgba(91,141,239,0.08); }
-
-  .method-badge {
-    font-size: 9px;
-    font-weight: 600;
-    font-family: 'JetBrains Mono', monospace;
-    padding: 2px 5px;
-    border-radius: 3px;
-    min-width: 36px;
-    text-align: center;
-    flex-shrink: 0;
-  }
-
-  .badge-GET { background: rgba(62,207,142,0.15); color: var(--GET); }
-  .badge-POST { background: rgba(91,141,239,0.15); color: var(--POST); }
-  .badge-PUT { background: rgba(245,158,11,0.15); color: var(--PUT); }
-  .badge-DELETE { background: rgba(239,68,68,0.15); color: var(--DELETE); }
-  .badge-PUBLIC { background: rgba(62,207,142,0.1); color: var(--GET); font-size: 8px; padding: 1px 4px; border: 1px solid rgba(62,207,142,0.3); border-radius: 2px; }
-
-  /* Main */
-  main {
-    margin-left: 260px;
-    flex: 1;
-    padding: 40px 48px;
-    max-width: 900px;
-  }
-
-  .section { display: none; }
-  .section.active { display: block; }
-
-  .section-header {
-    margin-bottom: 32px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .section-header h2 {
-    font-size: 26px;
-    font-weight: 600;
-    letter-spacing: -0.5px;
-    color: var(--text);
-  }
-
-  .section-header p {
-    margin-top: 8px;
-    color: var(--text2);
-    font-size: 14px;
-    line-height: 1.6;
-  }
-
-  /* Base URL */
-  .base-url {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 12px 16px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 13px;
-    color: var(--accent2);
-    margin-bottom: 24px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .base-url span { color: var(--text2); font-size: 11px; }
-
-  /* Endpoint card */
-  .endpoint {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    margin-bottom: 16px;
-    overflow: hidden;
-  }
-
-  .endpoint-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 14px 18px;
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-
-  .endpoint-header:hover { background: var(--surface2); }
-
-  .endpoint-method {
-    font-size: 11px;
-    font-weight: 700;
-    font-family: 'JetBrains Mono', monospace;
-    padding: 3px 8px;
-    border-radius: 4px;
-    min-width: 52px;
-    text-align: center;
-    flex-shrink: 0;
-  }
-
-  .method-GET { background: rgba(62,207,142,0.12); color: var(--GET); border: 1px solid rgba(62,207,142,0.25); }
-  .method-POST { background: rgba(91,141,239,0.12); color: var(--POST); border: 1px solid rgba(91,141,239,0.25); }
-  .method-PUT { background: rgba(245,158,11,0.12); color: var(--PUT); border: 1px solid rgba(245,158,11,0.25); }
-  .method-DELETE { background: rgba(239,68,68,0.12); color: var(--DELETE); border: 1px solid rgba(239,68,68,0.25); }
-
-  .endpoint-path {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 13px;
-    color: var(--text);
-    flex: 1;
-  }
-
-  .endpoint-path .param { color: var(--warn); }
-
-  .endpoint-desc {
-    font-size: 13px;
-    color: var(--text2);
-    flex-shrink: 0;
-  }
-
-  .public-tag {
-    font-size: 9px;
-    font-weight: 600;
-    padding: 2px 6px;
-    border-radius: 3px;
-    background: rgba(62,207,142,0.1);
-    color: var(--GET);
-    border: 1px solid rgba(62,207,142,0.25);
-    flex-shrink: 0;
-  }
-
-  .chevron {
-    color: var(--text3);
-    font-size: 12px;
-    transition: transform 0.2s;
-    flex-shrink: 0;
-  }
-
-  .endpoint.open .chevron { transform: rotate(180deg); }
-
-  .endpoint-body {
-    display: none;
-    border-top: 1px solid var(--border);
-    padding: 20px 18px;
-    background: var(--bg);
-  }
-
-  .endpoint.open .endpoint-body { display: block; }
-
-  /* Tabs */
-  .tabs { display: flex; gap: 0; margin-bottom: 16px; border-bottom: 1px solid var(--border); }
-
-  .tab {
-    font-size: 12px;
-    font-weight: 500;
-    padding: 8px 14px;
-    color: var(--text2);
-    cursor: pointer;
-    border-bottom: 2px solid transparent;
-    margin-bottom: -1px;
-    transition: all 0.15s;
-  }
-
-  .tab:hover { color: var(--text); }
-  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
-
-  .tab-content { display: none; }
-  .tab-content.active { display: block; }
-
-  /* Code block */
-  pre {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 16px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    line-height: 1.6;
-    overflow-x: auto;
-    color: var(--text);
-  }
-
-  .key { color: #a78bfa; }
-  .string { color: var(--accent2); }
-  .number { color: #fb923c; }
-  .bool { color: #f472b6; }
-  .comment { color: var(--text3); font-style: italic; }
-  .url-highlight { color: var(--accent); }
-
-  /* Params table */
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13px;
-  }
-
-  thead th {
-    text-align: left;
-    padding: 8px 12px;
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--text3);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    border-bottom: 1px solid var(--border);
-  }
-
-  tbody td {
-    padding: 10px 12px;
-    border-bottom: 1px solid var(--border);
-    vertical-align: top;
-    line-height: 1.5;
-  }
-
-  tbody tr:last-child td { border-bottom: none; }
-
-  .field-name {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    color: var(--accent2);
-  }
-
-  .field-type {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    color: #fb923c;
-  }
-
-  .required-tag {
-    font-size: 10px;
-    padding: 1px 5px;
-    border-radius: 3px;
-    background: rgba(239,68,68,0.12);
-    color: var(--danger);
-    border: 1px solid rgba(239,68,68,0.2);
-    margin-left: 4px;
-  }
-
-  .optional-tag {
-    font-size: 10px;
-    padding: 1px 5px;
-    border-radius: 3px;
-    background: rgba(255,255,255,0.05);
-    color: var(--text3);
-    border: 1px solid var(--border);
-    margin-left: 4px;
-  }
-
-  .field-desc { color: var(--text2); font-size: 13px; }
-
-  /* Auth note */
-  .auth-note {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    background: rgba(91,141,239,0.08);
-    border: 1px solid rgba(91,141,239,0.2);
-    border-radius: 8px;
-    padding: 12px 14px;
-    font-size: 13px;
-    color: var(--text2);
-    margin-bottom: 16px;
-  }
-
-  .auth-note .icon { color: var(--accent); font-size: 15px; flex-shrink: 0; }
-
-  .warn-note {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    background: rgba(245,158,11,0.08);
-    border: 1px solid rgba(245,158,11,0.2);
-    border-radius: 8px;
-    padding: 12px 14px;
-    font-size: 13px;
-    color: var(--text2);
-    margin-bottom: 16px;
-  }
-
-  .warn-note .icon { color: var(--warn); flex-shrink: 0; }
-
-  label { font-size: 12px; color: var(--text2); display: block; margin-bottom: 6px; font-weight: 500; }
-
-  input[type=text] {
-    width: 100%;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 8px 12px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    color: var(--text);
-    outline: none;
-    margin-bottom: 12px;
-    transition: border-color 0.15s;
-  }
-
-  input[type=text]:focus { border-color: var(--accent); }
-
-  .try-btn {
-    background: var(--accent);
-    color: #fff;
-    border: none;
-    border-radius: 6px;
-    padding: 8px 18px;
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: opacity 0.15s;
-  }
-
-  .try-btn:hover { opacity: 0.85; }
-
-  .response-box {
-    margin-top: 16px;
-    display: none;
-  }
-
-  .response-box.show { display: block; }
-
-  .response-status {
-    font-size: 12px;
-    font-family: 'JetBrains Mono', monospace;
-    margin-bottom: 8px;
-    padding: 6px 10px;
-    border-radius: 4px;
-    display: inline-block;
-  }
-
-  .status-ok { background: rgba(62,207,142,0.1); color: var(--GET); }
-  .status-err { background: rgba(239,68,68,0.1); color: var(--danger); }
-
-  /* Overview page */
-  .overview-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-    margin-bottom: 32px;
-  }
-
-  .stat-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 20px;
-  }
-
-  .stat-card .label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
-  .stat-card .value { font-size: 28px; font-weight: 600; color: var(--text); letter-spacing: -1px; }
-  .stat-card .sub { font-size: 12px; color: var(--text2); margin-top: 4px; }
-
-  .auth-flow {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 20px;
-    margin-bottom: 24px;
-  }
-
-  .auth-flow h3 { font-size: 14px; font-weight: 600; margin-bottom: 16px; color: var(--text); }
-
-  .flow-steps { display: flex; align-items: center; gap: 0; flex-wrap: wrap; }
-
-  .flow-step {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 8px 14px;
-    font-size: 12px;
-    color: var(--text2);
-    text-align: center;
-  }
-
-  .flow-step .step-num {
-    font-size: 10px;
-    color: var(--accent);
-    font-weight: 600;
-    margin-bottom: 2px;
-  }
-
-  .flow-arrow { color: var(--text3); padding: 0 8px; font-size: 16px; }
-
-  h3.sub-heading {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text2);
-    margin: 20px 0 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-
-  /* Scrollbar */
-  ::-webkit-scrollbar { width: 6px; height: 6px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-</style>
-</head>
-<body>
-
-<aside>
-  <div class="logo">
-    <h1>GrowthB API</h1>
-    <p>v1.0 · Laravel 13</p>
-  </div>
-
-  <div class="nav-group">
-    <div class="nav-group-label">Overview</div>
-    <div class="nav-item active" onclick="showSection('overview', this)">📋 Overview & Auth</div>
-  </div>
-
-  <div class="nav-group">
-    <div class="nav-group-label">Auth</div>
-    <div class="nav-item" onclick="showSection('auth', this)">
-      <span class="method-badge badge-POST">POST</span> Register
-    </div>
-    <div class="nav-item" onclick="showSection('auth', this)">
-      <span class="method-badge badge-POST">POST</span> Login
-    </div>
-    <div class="nav-item" onclick="showSection('auth', this)">
-      <span class="method-badge badge-POST">POST</span> Logout
-    </div>
-    <div class="nav-item" onclick="showSection('auth', this)">
-      <span class="method-badge badge-GET">GET</span> Me
-    </div>
-  </div>
-
-  <div class="nav-group">
-    <div class="nav-group-label">Bisnis</div>
-    <div class="nav-item" onclick="showSection('bisnis', this)">
-      <span class="method-badge badge-POST">POST</span> Daftar Bisnis
-    </div>
-    <div class="nav-item" onclick="showSection('bisnis', this)">
-      <span class="method-badge badge-GET">GET</span> Detail Bisnis
-    </div>
-    <div class="nav-item" onclick="showSection('bisnis', this)">
-      <span class="method-badge badge-PUT">PUT</span> Update Bisnis
-    </div>
-    <div class="nav-item" onclick="showSection('bisnis', this)">
-      <span class="method-badge badge-GET">GET</span> Generate QR
-    </div>
-  </div>
-
-  <div class="nav-group">
-    <div class="nav-group-label">Produk</div>
-    <div class="nav-item" onclick="showSection('produk', this)">
-      <span class="method-badge badge-GET">GET</span> List Produk
-    </div>
-    <div class="nav-item" onclick="showSection('produk', this)">
-      <span class="method-badge badge-POST">POST</span> Tambah Produk
-    </div>
-    <div class="nav-item" onclick="showSection('produk', this)">
-      <span class="method-badge badge-PUT">PUT</span> Update Produk
-    </div>
-    <div class="nav-item" onclick="showSection('produk', this)">
-      <span class="method-badge badge-DELETE">DEL</span> Hapus Produk
-    </div>
-  </div>
-
-  <div class="nav-group">
-    <div class="nav-group-label">Data Harian</div>
-    <div class="nav-item" onclick="showSection('dataharian', this)">
-      <span class="method-badge badge-GET">GET</span> List Data
-    </div>
-    <div class="nav-item" onclick="showSection('dataharian', this)">
-      <span class="method-badge badge-POST">POST</span> Input Data
-    </div>
-    <div class="nav-item" onclick="showSection('dataharian', this)">
-      <span class="method-badge badge-GET">GET</span> Summary
-    </div>
-    <div class="nav-item" onclick="showSection('dataharian', this)">
-      <span class="method-badge badge-PUT">PUT</span> Update Data
-    </div>
-    <div class="nav-item" onclick="showSection('dataharian', this)">
-      <span class="method-badge badge-DELETE">DEL</span> Hapus Data
-    </div>
-  </div>
-
-  <div class="nav-group">
-    <div class="nav-group-label">Member</div>
-    <div class="nav-item" onclick="showSection('member', this)">
-      <span class="method-badge badge-GET">GET</span> List Member
-    </div>
-    <div class="nav-item" onclick="showSection('member', this)">
-      <span class="method-badge badge-GET">GET</span> Scan QR
-    </div>
-    <div class="nav-item" onclick="showSection('member', this)">
-      <span class="method-badge badge-POST">POST</span> Check-in
-    </div>
-    <div class="nav-item" onclick="showSection('member', this)">
-      <span class="method-badge badge-GET">GET</span> Eligible Reward
-    </div>
-    <div class="nav-item" onclick="showSection('member', this)">
-      <span class="method-badge badge-POST">POST</span> Set Reward
-    </div>
-  </div>
-
-  <div class="nav-group">
-    <div class="nav-group-label">Analisa AI</div>
-    <div class="nav-item" onclick="showSection('analisa', this)">
-      <span class="method-badge badge-GET">GET</span> Status Siklus
-    </div>
-    <div class="nav-item" onclick="showSection('analisa', this)">
-      <span class="method-badge badge-POST">POST</span> Generate
-    </div>
-    <div class="nav-item" onclick="showSection('analisa', this)">
-      <span class="method-badge badge-GET">GET</span> Latest
-    </div>
-    <div class="nav-item" onclick="showSection('analisa', this)">
-      <span class="method-badge badge-GET">GET</span> List Analisa
-    </div>
-  </div>
-</aside>
-
-<main>
-
-  <!-- OVERVIEW -->
-  <div class="section active" id="section-overview">
-    <div class="section-header">
-      <h2>GrowthB API</h2>
-      <p>REST API untuk aplikasi pengambilan keputusan pelaku UMKM. Dibangun dengan Laravel 13 + Sanctum authentication.</p>
-    </div>
-
-    <div class="base-url">
-      <span>BASE URL</span>
-      http://localhost:8000/api
-    </div>
-
-    <div class="overview-grid">
-      <div class="stat-card">
-        <div class="label">Total Endpoint</div>
-        <div class="value">22</div>
-        <div class="sub">6 public · 16 protected</div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GrowthB API Docs</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap");
+
+      :root {
+        --bg: #0f1117;
+        --surface: #181c27;
+        --surface2: #1e2333;
+        --border: #2a3045;
+        --accent: #5b8def;
+        --accent2: #3ecf8e;
+        --warn: #f59e0b;
+        --danger: #ef4444;
+        --text: #e2e8f0;
+        --text2: #8892a4;
+        --text3: #4a5568;
+        --GET: #3ecf8e;
+        --POST: #5b8def;
+        --PUT: #f59e0b;
+        --DELETE: #ef4444;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: "Inter", sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        display: flex;
+        min-height: 100vh;
+      }
+
+      aside {
+        width: 268px;
+        min-height: 100vh;
+        background: var(--surface);
+        border-right: 1px solid var(--border);
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        overflow-y: auto;
+        padding: 24px 0;
+      }
+
+      .logo {
+        padding: 0 20px 20px;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 12px;
+      }
+      .logo h1 {
+        font-size: 17px;
+        font-weight: 600;
+        letter-spacing: -0.3px;
+      }
+      .logo p {
+        font-size: 11px;
+        color: var(--text2);
+        margin-top: 2px;
+        font-family: "JetBrains Mono", monospace;
+      }
+
+      .nav-group {
+        margin-bottom: 2px;
+      }
+      .nav-group-label {
+        font-size: 10px;
+        font-weight: 600;
+        color: var(--text3);
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        padding: 10px 20px 4px;
+      }
+      .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 20px;
+        font-size: 12.5px;
+        color: var(--text2);
+        cursor: pointer;
+        border-left: 2px solid transparent;
+        transition: all 0.12s;
+      }
+      .nav-item:hover {
+        color: var(--text);
+        background: var(--surface2);
+      }
+      .nav-item.active {
+        color: var(--accent);
+        border-left-color: var(--accent);
+        background: rgba(91, 141, 239, 0.07);
+      }
+
+      .mb {
+        font-size: 9px;
+        font-weight: 700;
+        font-family: "JetBrains Mono", monospace;
+        padding: 2px 5px;
+        border-radius: 3px;
+        min-width: 34px;
+        text-align: center;
+        flex-shrink: 0;
+      }
+      .mb-GET {
+        background: rgba(62, 207, 142, 0.13);
+        color: var(--GET);
+      }
+      .mb-POST {
+        background: rgba(91, 141, 239, 0.13);
+        color: var(--POST);
+      }
+      .mb-PUT {
+        background: rgba(245, 158, 11, 0.13);
+        color: var(--PUT);
+      }
+      .mb-DELETE {
+        background: rgba(239, 68, 68, 0.13);
+        color: var(--DELETE);
+      }
+
+      main {
+        margin-left: 268px;
+        flex: 1;
+        padding: 40px 52px;
+        max-width: 920px;
+      }
+
+      .section {
+        display: none;
+      }
+      .section.active {
+        display: block;
+      }
+
+      .section-header {
+        margin-bottom: 28px;
+        padding-bottom: 18px;
+        border-bottom: 1px solid var(--border);
+      }
+      .section-header h2 {
+        font-size: 24px;
+        font-weight: 600;
+        letter-spacing: -0.5px;
+      }
+      .section-header p {
+        margin-top: 7px;
+        color: var(--text2);
+        font-size: 13.5px;
+        line-height: 1.65;
+      }
+
+      .base-url {
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 11px 15px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 13px;
+        color: var(--accent2);
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .base-url span {
+        color: var(--text2);
+        font-size: 10px;
+      }
+
+      /* Stats grid */
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+        margin-bottom: 28px;
+      }
+      .stat-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 18px;
+      }
+      .stat-card .label {
+        font-size: 10px;
+        color: var(--text3);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 7px;
+      }
+      .stat-card .value {
+        font-size: 26px;
+        font-weight: 600;
+        letter-spacing: -1px;
+      }
+      .stat-card .sub {
+        font-size: 11.5px;
+        color: var(--text2);
+        margin-top: 3px;
+      }
+
+      /* Auth flow */
+      .flow-box {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 18px;
+        margin-bottom: 24px;
+      }
+      .flow-box h3 {
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 14px;
+      }
+      .flow-steps {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 4px;
+      }
+      .flow-step {
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 7px 13px;
+        font-size: 12px;
+        color: var(--text2);
+        text-align: center;
+      }
+      .flow-step .sn {
+        font-size: 9px;
+        color: var(--accent);
+        font-weight: 600;
+        margin-bottom: 1px;
+      }
+      .flow-arrow {
+        color: var(--text3);
+        padding: 0 4px;
+      }
+
+      /* Endpoint */
+      .endpoint {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        margin-bottom: 14px;
+        overflow: hidden;
+      }
+      .ep-header {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        padding: 13px 17px;
+        cursor: pointer;
+        transition: background 0.12s;
+      }
+      .ep-header:hover {
+        background: var(--surface2);
+      }
+
+      .ep-method {
+        font-size: 10.5px;
+        font-weight: 700;
+        font-family: "JetBrains Mono", monospace;
+        padding: 3px 8px;
+        border-radius: 4px;
+        min-width: 50px;
+        text-align: center;
+        flex-shrink: 0;
+      }
+      .m-GET {
+        background: rgba(62, 207, 142, 0.1);
+        color: var(--GET);
+        border: 1px solid rgba(62, 207, 142, 0.22);
+      }
+      .m-POST {
+        background: rgba(91, 141, 239, 0.1);
+        color: var(--POST);
+        border: 1px solid rgba(91, 141, 239, 0.22);
+      }
+      .m-PUT {
+        background: rgba(245, 158, 11, 0.1);
+        color: var(--PUT);
+        border: 1px solid rgba(245, 158, 11, 0.22);
+      }
+      .m-DELETE {
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--DELETE);
+        border: 1px solid rgba(239, 68, 68, 0.22);
+      }
+
+      .ep-path {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 13px;
+        flex: 1;
+      }
+      .ep-path .param {
+        color: var(--warn);
+      }
+      .ep-desc {
+        font-size: 12.5px;
+        color: var(--text2);
+        flex-shrink: 0;
+      }
+      .pub-tag {
+        font-size: 9px;
+        font-weight: 600;
+        padding: 2px 6px;
+        border-radius: 3px;
+        flex-shrink: 0;
+        background: rgba(62, 207, 142, 0.08);
+        color: var(--GET);
+        border: 1px solid rgba(62, 207, 142, 0.22);
+      }
+      .chevron {
+        color: var(--text3);
+        font-size: 11px;
+        transition: transform 0.18s;
+        flex-shrink: 0;
+      }
+      .endpoint.open .chevron {
+        transform: rotate(180deg);
+      }
+
+      .ep-body {
+        display: none;
+        border-top: 1px solid var(--border);
+        padding: 18px 17px;
+        background: var(--bg);
+      }
+      .endpoint.open .ep-body {
+        display: block;
+      }
+
+      /* Tabs */
+      .tabs {
+        display: flex;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 14px;
+      }
+      .tab {
+        font-size: 12px;
+        font-weight: 500;
+        padding: 7px 13px;
+        color: var(--text2);
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        margin-bottom: -1px;
+        transition: all 0.12s;
+      }
+      .tab:hover {
+        color: var(--text);
+      }
+      .tab.active {
+        color: var(--accent);
+        border-bottom-color: var(--accent);
+      }
+      .tab-content {
+        display: none;
+      }
+      .tab-content.active {
+        display: block;
+      }
+
+      /* Code */
+      pre {
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 15px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 12px;
+        line-height: 1.65;
+        overflow-x: auto;
+        color: var(--text);
+      }
+      .k {
+        color: #a78bfa;
+      }
+      .s {
+        color: var(--accent2);
+      }
+      .n {
+        color: #fb923c;
+      }
+      .b {
+        color: #f472b6;
+      }
+      .c {
+        color: var(--text3);
+        font-style: italic;
+      }
+
+      /* Table */
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+      thead th {
+        text-align: left;
+        padding: 7px 11px;
+        font-size: 10.5px;
+        font-weight: 600;
+        color: var(--text3);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 1px solid var(--border);
+      }
+      tbody td {
+        padding: 9px 11px;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+        line-height: 1.5;
+      }
+      tbody tr:last-child td {
+        border-bottom: none;
+      }
+      .fn {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 12px;
+        color: var(--accent2);
+      }
+      .ft {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        color: #fb923c;
+      }
+      .fd {
+        color: var(--text2);
+      }
+      .req {
+        font-size: 9.5px;
+        padding: 1px 5px;
+        border-radius: 3px;
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--danger);
+        border: 1px solid rgba(239, 68, 68, 0.2);
+        margin-left: 3px;
+      }
+      .opt {
+        font-size: 9.5px;
+        padding: 1px 5px;
+        border-radius: 3px;
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--text3);
+        border: 1px solid var(--border);
+        margin-left: 3px;
+      }
+
+      /* Notes */
+      .note-blue {
+        display: flex;
+        gap: 9px;
+        background: rgba(91, 141, 239, 0.07);
+        border: 1px solid rgba(91, 141, 239, 0.18);
+        border-radius: 8px;
+        padding: 11px 13px;
+        font-size: 13px;
+        color: var(--text2);
+        margin-bottom: 14px;
+      }
+      .note-warn {
+        display: flex;
+        gap: 9px;
+        background: rgba(245, 158, 11, 0.07);
+        border: 1px solid rgba(245, 158, 11, 0.18);
+        border-radius: 8px;
+        padding: 11px 13px;
+        font-size: 13px;
+        color: var(--text2);
+        margin-bottom: 14px;
+      }
+      .note-green {
+        display: flex;
+        gap: 9px;
+        background: rgba(62, 207, 142, 0.07);
+        border: 1px solid rgba(62, 207, 142, 0.18);
+        border-radius: 8px;
+        padding: 11px 13px;
+        font-size: 13px;
+        color: var(--text2);
+        margin-bottom: 14px;
+      }
+      .note-blue .ic,
+      .note-warn .ic,
+      .note-green .ic {
+        flex-shrink: 0;
+      }
+
+      h3.sh {
+        font-size: 11.5px;
+        font-weight: 600;
+        color: var(--text3);
+        margin: 16px 0 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      ::-webkit-scrollbar {
+        width: 5px;
+        height: 5px;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--border);
+        border-radius: 3px;
+      }
+    </style>
+  </head>
+  <body>
+    <aside>
+      <div class="logo">
+        <h1>GrowthB API</h1>
+        <p>v2.0 · Laravel 13 · Gemini 2.5 Flash</p>
       </div>
-      <div class="stat-card">
-        <div class="label">AI Engine</div>
-        <div class="value" style="font-size:16px;margin-top:4px">Gemini 2.5 Flash</div>
-        <div class="sub">Analisa otomatis tiap 14 hari</div>
-      </div>
-    </div>
 
-    <div class="auth-flow">
-      <h3>🔐 Alur Autentikasi</h3>
-      <div class="flow-steps">
-        <div class="flow-step">
-          <div class="step-num">01</div>
-          Register / Login
-        </div>
-        <div class="flow-arrow">→</div>
-        <div class="flow-step">
-          <div class="step-num">02</div>
-          Dapat <code style="color:var(--accent2)">token</code>
-        </div>
-        <div class="flow-arrow">→</div>
-        <div class="flow-step">
-          <div class="step-num">03</div>
-          Kirim di header
-        </div>
-        <div class="flow-arrow">→</div>
-        <div class="flow-step">
-          <div class="step-num">04</div>
-          Akses endpoint
+      <div class="nav-group">
+        <div class="nav-group-label">Overview</div>
+        <div class="nav-item active" onclick="showSection('overview', this)">
+          📋 Overview & Auth
         </div>
       </div>
-    </div>
 
-    <h3 class="sub-heading">Header untuk endpoint protected</h3>
-    <pre><span class="key">Authorization</span>: Bearer <span class="string">{token}</span>
-<span class="key">Content-Type</span>: application/json
-<span class="key">Accept</span>: application/json</pre>
+      <div class="nav-group">
+        <div class="nav-group-label">Auth</div>
+        <div class="nav-item" onclick="showSection('auth', this)">
+          <span class="mb mb-POST">POST</span>Register
+        </div>
+        <div class="nav-item" onclick="showSection('auth', this)">
+          <span class="mb mb-POST">POST</span>Login
+        </div>
+        <div class="nav-item" onclick="showSection('auth', this)">
+          <span class="mb mb-POST">POST</span>Logout
+        </div>
+        <div class="nav-item" onclick="showSection('auth', this)">
+          <span class="mb mb-GET">GET</span>Me
+        </div>
+      </div>
 
-    <h3 class="sub-heading">Format Response</h3>
-    <pre><span class="comment">// Success</span>
-{
-  <span class="key">"message"</span>: <span class="string">"..."</span>,
-  <span class="key">"data"</span>: { ... }
-}
+      <div class="nav-group">
+        <div class="nav-group-label">Bisnis</div>
+        <div class="nav-item" onclick="showSection('bisnis', this)">
+          <span class="mb mb-POST">POST</span>Daftar Bisnis
+        </div>
+        <div class="nav-item" onclick="showSection('bisnis', this)">
+          <span class="mb mb-GET">GET</span>Detail Bisnis
+        </div>
+        <div class="nav-item" onclick="showSection('bisnis', this)">
+          <span class="mb mb-PUT">PUT</span>Update Bisnis
+        </div>
+        <div class="nav-item" onclick="showSection('bisnis', this)">
+          <span class="mb mb-GET">GET</span>Generate QR
+        </div>
+      </div>
 
-<span class="comment">// Error</span>
-{
-  <span class="key">"message"</span>: <span class="string">"..."</span>
-}
+      <div class="nav-group">
+        <div class="nav-group-label">Produk</div>
+        <div class="nav-item" onclick="showSection('produk', this)">
+          <span class="mb mb-GET">GET</span>List Produk
+        </div>
+        <div class="nav-item" onclick="showSection('produk', this)">
+          <span class="mb mb-POST">POST</span>Tambah Produk
+        </div>
+        <div class="nav-item" onclick="showSection('produk', this)">
+          <span class="mb mb-PUT">PUT</span>Update Produk
+        </div>
+        <div class="nav-item" onclick="showSection('produk', this)">
+          <span class="mb mb-DELETE">DEL</span>Hapus Produk
+        </div>
+      </div>
 
-<span class="comment">// Validation Error</span>
-{
-  <span class="key">"message"</span>: <span class="string">"invalid field"</span>,
-  <span class="key">"errors"</span>: { <span class="key">"field"</span>: [<span class="string">"..."</span>] }
+      <div class="nav-group">
+        <div class="nav-group-label">Data Harian</div>
+        <div class="nav-item" onclick="showSection('dataharian', this)">
+          <span class="mb mb-GET">GET</span>List Data
+        </div>
+        <div class="nav-item" onclick="showSection('dataharian', this)">
+          <span class="mb mb-POST">POST</span>Input Data
+        </div>
+        <div class="nav-item" onclick="showSection('dataharian', this)">
+          <span class="mb mb-GET">GET</span>Summary
+        </div>
+        <div class="nav-item" onclick="showSection('dataharian', this)">
+          <span class="mb mb-PUT">PUT</span>Update Data
+        </div>
+        <div class="nav-item" onclick="showSection('dataharian', this)">
+          <span class="mb mb-DELETE">DEL</span>Hapus Data
+        </div>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-group-label">Member</div>
+        <div class="nav-item" onclick="showSection('member', this)">
+          <span class="mb mb-GET">GET</span>List Member
+        </div>
+        <div class="nav-item" onclick="showSection('member', this)">
+          <span class="mb mb-GET">GET</span>Scan QR
+        </div>
+        <div class="nav-item" onclick="showSection('member', this)">
+          <span class="mb mb-POST">POST</span>Check-in
+        </div>
+        <div class="nav-item" onclick="showSection('member', this)">
+          <span class="mb mb-GET">GET</span>Eligible Reward
+        </div>
+        <div class="nav-item" onclick="showSection('member', this)">
+          <span class="mb mb-POST">POST</span>Set Reward
+        </div>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-group-label">Analisa AI</div>
+        <div class="nav-item" onclick="showSection('analisa', this)">
+          <span class="mb mb-GET">GET</span>Status Siklus
+        </div>
+        <div class="nav-item" onclick="showSection('analisa', this)">
+          <span class="mb mb-POST">POST</span>Generate
+        </div>
+        <div class="nav-item" onclick="showSection('analisa', this)">
+          <span class="mb mb-GET">GET</span>Latest
+        </div>
+        <div class="nav-item" onclick="showSection('analisa', this)">
+          <span class="mb mb-GET">GET</span>List Analisa
+        </div>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-group-label">Roadmap</div>
+        <div class="nav-item" onclick="showSection('roadmap', this)">
+          <span class="mb mb-GET">GET</span>List Roadmap
+        </div>
+        <div class="nav-item" onclick="showSection('roadmap', this)">
+          <span class="mb mb-POST">POST</span>Buat Roadmap
+        </div>
+        <div class="nav-item" onclick="showSection('roadmap', this)">
+          <span class="mb mb-GET">GET</span>Detail Roadmap
+        </div>
+        <div class="nav-item" onclick="showSection('roadmap', this)">
+          <span class="mb mb-PUT">PUT</span>Update Roadmap
+        </div>
+        <div class="nav-item" onclick="showSection('roadmap', this)">
+          <span class="mb mb-DELETE">DEL</span>Hapus Roadmap
+        </div>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-group-label">What If</div>
+        <div class="nav-item" onclick="showSection('whatif', this)">
+          <span class="mb mb-GET">GET</span>Cek Kuota
+        </div>
+        <div class="nav-item" onclick="showSection('whatif', this)">
+          <span class="mb mb-POST">POST</span>Predict Produk
+        </div>
+        <div class="nav-item" onclick="showSection('whatif', this)">
+          <span class="mb mb-POST">POST</span>Predict Biaya
+        </div>
+        <div class="nav-item" onclick="showSection('whatif', this)">
+          <span class="mb mb-POST">POST</span>Predict Jam
+        </div>
+        <div class="nav-item" onclick="showSection('whatif', this)">
+          <span class="mb mb-GET">GET</span>Riwayat
+        </div>
+      </div>
+    </aside>
+
+    <main>
+      <!-- ═══════════════ OVERVIEW ═══════════════ -->
+      <div class="section active" id="section-overview">
+        <div class="section-header">
+          <h2>GrowthB API</h2>
+          <p>
+            REST API pengambilan keputusan UMKM. Laravel 13 + Sanctum + Gemini
+            2.5 Flash.
+          </p>
+        </div>
+
+        <div class="base-url">
+          <span>BASE URL</span>http://localhost:8000/api
+        </div>
+
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="label">Total Endpoint</div>
+            <div class="value">29</div>
+            <div class="sub">6 public · 23 protected</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">AI Engine</div>
+            <div class="value" style="font-size: 15px; margin-top: 6px">
+              Gemini 2.5 Flash
+            </div>
+            <div class="sub">Analisa · What If</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">What If / hari</div>
+            <div class="value">3x</div>
+            <div class="sub">Reset tiap tengah malam</div>
+          </div>
+        </div>
+
+        <div class="flow-box">
+          <h3>🔐 Alur Autentikasi</h3>
+          <div class="flow-steps">
+            <div class="flow-step">
+              <div class="sn">01</div>
+              Register / Login
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step">
+              <div class="sn">02</div>
+              Dapat <code style="color: var(--accent2)">token</code>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step">
+              <div class="sn">03</div>
+              Kirim di header
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step">
+              <div class="sn">04</div>
+              Akses endpoint
+            </div>
+          </div>
+        </div>
+
+        <h3 class="sh">Header untuk endpoint protected</h3>
+        <pre><span class="k">Authorization</span>: Bearer <span class="s">{token}</span>
+<span class="k">Content-Type</span>: application/json
+<span class="k">Accept</span>: application/json</pre>
+
+        <h3 class="sh">Format response</h3>
+        <pre><span class="c">// Success</span>
+{ <span class="k">"message"</span>: <span class="s">"..."</span>, <span class="k">"data"</span>: { ... } }
+
+<span class="c">// Error</span>
+{ <span class="k">"message"</span>: <span class="s">"..."</span> }
+
+<span class="c">// Validation Error</span>
+{ <span class="k">"message"</span>: <span class="s">"invalid field"</span>, <span class="k">"errors"</span>: { <span class="k">"field"</span>: [<span class="s">"..."</span>] } }</pre>
+
+        <h3 class="sh">Orientasi Analisa AI</h3>
+        <pre><span class="c">// Prioritas orientasi saat generate analisa & what if:</span>
+Ada roadmap aktif?  →  pakai roadmap sebagai acuan
+Tidak ada?          →  fallback ke tujuan_bisnis dari profil bisnis
+
+<span class="c">// Response generate analisa menyertakan field:</span>
+{ <span class="k">"orientasi_pakai"</span>: <span class="s">"roadmap"</span> }   <span class="c">// atau "tujuan_bisnis"</span></pre>
+      </div>
+
+      <!-- ═══════════════ AUTH ═══════════════ -->
+      <div class="section" id="section-auth">
+        <div class="section-header">
+          <h2>Auth</h2>
+          <p>Registrasi, login, logout, dan info user yang sedang login.</p>
+        </div>
+
+        <div class="endpoint" id="ep-register">
+          <div class="ep-header" onclick="toggle('ep-register')">
+            <span class="ep-method m-POST">POST</span
+            ><span class="ep-path">/register</span>
+            <span class="pub-tag">PUBLIC</span
+            ><span class="ep-desc">Daftar akun baru</span
+            ><span class="chevron">▼</span>
+          </div>
+          <div class="ep-body">
+            <div class="tabs">
+              <div class="tab active" onclick="tab(this, 'r-b')">Body</div>
+              <div class="tab" onclick="tab(this, 'r-r')">Response</div>
+            </div>
+            <div class="tab-content active" id="r-b">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Field</th>
+                    <th>Tipe</th>
+                    <th>Keterangan</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="fn">full_name<span class="req">wajib</span></td>
+                    <td class="ft">string</td>
+                    <td class="fd">Nama lengkap user</td>
+                  </tr>
+                  <tr>
+                    <td class="fn">email<span class="req">wajib</span></td>
+                    <td class="ft">string</td>
+                    <td class="fd">Email unik, format valid</td>
+                  </tr>
+                  <tr>
+                    <td class="fn">password<span class="req">wajib</span></td>
+                    <td class="ft">string</td>
+                    <td class="fd">Min. 6 karakter</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="tab-content" id="r-r">
+              <pre>{ <span class="k">"message"</span>: <span class="s">"Registration successful"</span>, <span class="k">"id"</span>: <span class="n">1</span>, <span class="k">"name"</span>: <span class="s">"Budi"</span>, <span class="k">"token"</span>: <span class="s">"1|abc..."</span> }</pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="endpoint" id="ep-login">
+          <div class="ep-header" onclick="toggle('ep-login')">
+            <span class="ep-method m-POST">POST</span
+            ><span class="ep-path">/login</span>
+            <span class="pub-tag">PUBLIC</span
+            ><span class="ep-desc">Login & dapat token</span
+            ><span class="chevron">▼</span>
+          </div>
+          <div class="ep-body">
+            <table>
+              <thead>
+                <tr>
+                  <th>Field</th>
+                  <th>Tipe</th>
+                  <th>Keterangan</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="fn">email<span class="req">wajib</span></td>
+                  <td class="ft">string</td>
+                  <td class="fd">Email terdaftar</td>
+                </tr>
+                <tr>
+                  <td class="fn">password<span class="req">wajib</span></td>
+                  <td class="ft">string</td>
+                  <td class="fd">Password akun</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="endpoint" id="ep-logout">
+          <div class="ep-header" onclick="toggle('ep-logout')">
+            <span class="ep-method m-POST">POST</span
+            ><span class="ep-path">/logout</span
+            ><span class="ep-desc">Hapus token aktif</span
+            ><span class="chevron">▼</span>
+          </div>
+          <div class="ep-body">
+            <div class="note-blue">
+              <span class="ic">🔐</span>Butuh header
+              <code>Authorization: Bearer {token}</code>
+            </div>
+            <pre>{ <span class="k">"message"</span>: <span class="s">"Logout successful"</span> }</pre>
+          </div>
+        </div>
+
+        <div class="endpoint" id="ep-me">
+          <div class="ep-header" onclick="toggle('ep-me')">
+            <span class="ep-method m-GET">GET</span
+            ><span class="ep-path">/me</span
+            ><span class="ep-desc">Info user & bisnis aktif</span
+            ><span class="chevron">▼</span>
+          </div>
+          <div class="ep-body">
+            <pre>{ <span class="k">"data"</span>: { <span class="k">"user"</span>: { ... }, <span class="k">"bisnis"</span>: { ... } } }</pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════ BISNIS ═══════════════ -->
+      <div class="section" id="section-bisnis">
+        <div class="section-header">
+          <h2>Bisnis</h2>
+          <p>
+            Pendaftaran dan pengelolaan data UMKM. Satu user hanya bisa punya
+            satu bisnis.
+          </p>
+        </div>
+
+        <div class="endpoint" id="ep-bs-store">
+          <div class="ep-header" onclick="toggle('ep-bs-store')">
+            <span class="ep-method m-POST">POST</span
+            ><span class="ep-path">/bisnis</span
+            ><span class="ep-desc">Daftarkan bisnis baru</span
+            ><span class="chevron">▼</span>
+          </div>
+          <div class="ep-body">
+            <div class="tabs">
+              <div class="tab active" onclick="tab(this, 'bs-b')">Body</div>
+              <div class="tab" onclick="tab(this, 'bs-e')">Contoh</div>
+              <div class="tab" onclick="tab(this, 'bs-r')">Response</div>
+            </div>
+            <div class="tab-content active" id="bs-b">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Field</th>
+                    <th>Tipe</th>
+                    <th>Keterangan</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="fn">
+                      bisnis_nama<span class="req">wajib</span>
+                    </td>
+                    <td class="ft">string</td>
+                    <td class="fd">Nama bisnis</td>
+                  </tr>
+                  <tr>
+                    <td class="fn">
+                      bisnis_tipe<span class="req">wajib</span>
+                    </td>
+                    <td class="ft">enum</td>
+                    <td class="fd">
+                      <code>barang</code> atau <code>jasa</code>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="fn">
+                      bisnis_mulai<span class="req">wajib</span>
+                    </td>
+                    <td class="ft">date</td>
+                    <td class="fd">
+                      Format <code>Y-m-d</code> — dipakai sebagai titik awal
+                      siklus analisa 14 hari
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="fn">
+                      bisnis_buka<span class="req">wajib</span>
+                    </td>
+                    <td class="ft">time</td>
+                    <td class="fd">Format <code>HH:mm</code></td>
+                  </tr>
+                  <tr>
+                    <td class="fn">
+                      bisnis_tutup<span class="req">wajib</span>
+                    </td>
+                    <td class="ft">time</td>
+                    <td class="fd">Format <code>HH:mm</code></td>
+                  </tr>
+                  <tr>
+                    <td class="fn">
+                      jumlah_pegawai<span class="req">wajib</span>
+                    </td>
+                    <td class="ft">integer</td>
+                    <td class="fd">Min. 1</td>
+                  </tr>
+                  <tr>
+                    <td class="fn">
+                      target_market<span class="req">wajib</span>
+                    </td>
+                    <td class="ft">string</td>
+                    <td class="fd">Deskripsi target pelanggan</td>
+                  </tr>
+                  <tr>
+                    <td class="fn">
+                      tujuan_bisnis<span class="req">wajib</span>
+                    </td>
+                    <td class="ft">array</td>
+                    <td class="fd">
+                      Pilihan: <code>menaikkan omset</code>,
+                      <code>menambah pelanggan tetap</code>,
+                      <code>mengurangi biaya operasional</code>,
+                      <code>Meningkatkan keuntungan</code>. Dipakai sebagai
+                      fallback orientasi AI jika tidak ada roadmap.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="tab-content" id="bs-e">
+              <pre>{
+  <span class="k">"bisnis_nama"</span>: <span class="s">"Warung Makan Bu Sari"</span>,
+  <span class="k">"bisnis_tipe"</span>: <span class="s">"jasa"</span>,
+  <span class="k">"bisnis_mulai"</span>: <span class="s">"2024-07-01"</span>,
+  <span class="k">"bisnis_buka"</span>: <span class="s">"07:00"</span>, <span class="k">"bisnis_tutup"</span>: <span class="s">"21:00"</span>,
+  <span class="k">"jumlah_pegawai"</span>: <span class="n">4</span>,
+  <span class="k">"target_market"</span>: <span class="s">"Pelajar dan karyawan kawasan industri"</span>,
+  <span class="k">"tujuan_bisnis"</span>: [<span class="s">"menaikkan omset"</span>, <span class="s">"menambah pelanggan tetap"</span>]
 }</pre>
-  </div>
-
-  <!-- AUTH -->
-  <div class="section" id="section-auth">
-    <div class="section-header">
-      <h2>Auth</h2>
-      <p>Registrasi, login, logout, dan info user yang sedang login.</p>
-    </div>
-
-    <!-- Register -->
-    <div class="endpoint" id="ep-register">
-      <div class="endpoint-header" onclick="toggleEndpoint('ep-register')">
-        <span class="endpoint-method method-POST">POST</span>
-        <span class="endpoint-path">/register</span>
-        <span class="public-tag">PUBLIC</span>
-        <span class="endpoint-desc">Daftar akun baru</span>
-        <span class="chevron">▼</span>
-      </div>
-      <div class="endpoint-body">
-        <div class="tabs">
-          <div class="tab active" onclick="switchTab(this, 'reg-body')">Body</div>
-          <div class="tab" onclick="switchTab(this, 'reg-response')">Response</div>
+            </div>
+            <div class="tab-content" id="bs-r">
+              <pre>{ <span class="k">"message"</span>: <span class="s">"UMKM berhasil terdaftar"</span>, <span class="k">"data"</span>: { <span class="k">"bisnis_nama"</span>: <span class="s">"..."</span>, <span class="k">"member_token"</span>: <span class="s">"abc123"</span>, ... } }</pre>
+            </div>
+          </div>
         </div>
-        <div class="tab-content active" id="reg-body">
-          <table>
-            <thead><tr><th>Field</th><th>Tipe</th><th>Keterangan</th></tr></thead>
-            <tbody>
-              <tr><td class="field-name">full_name <span class="required-tag">wajib</span></td><td class="field-type">string</td><td class="field-desc">Nama lengkap user</td></tr>
-              <tr><td class="field-name">email <span class="required-tag">wajib</span></td><td class="field-type">string</td><td class="field-desc">Email unik, format valid</td></tr>
-              <tr><td class="field-name">password <span class="required-tag">wajib</span></td><td class="field-type">string</td><td class="field-desc">Min. 6 karakter</td></tr>
-            </tbody>
-          </table>
-        </div>
-        <div class="tab-content" id="reg-response">
-          <pre>{
-  <span class="key">"message"</span>: <span class="string">"Registration successful"</span>,
-  <span class="key">"name"</span>: <span class="string">"Budi Santoso"</span>,
-  <span class="key">"email"</span>: <span class="string">"budi@example.com"</span>,
-  <span class="key">"id"</span>: <span class="number">1</span>,
-  <span class="key">"token"</span>: <span class="string">"1|abc123xyz..."</span>,
-  <span class="key">"created_at"</span>: <span class="string">"2024-07-01T08:00:00Z"</span>
-}</pre>
-        </div>
-      </div>
-    </div>
 
-    <!-- Login -->
-    <div class="endpoint" id="ep-login">
-      <div class="endpoint-header" onclick="toggleEndpoint('ep-login')">
-        <span class="endpoint-method method-POST">POST</span>
-        <span class="endpoint-path">/login</span>
-        <span class="public-tag">PUBLIC</span>
-        <span class="endpoint-desc">Login & dapat token</span>
-        <span class="chevron">▼</span>
-      </div>
-      <div class="endpoint-body">
-        <div class="tabs">
-          <div class="tab active" onclick="switchTab(this, 'login-body')">Body</div>
-          <div class="tab" onclick="switchTab(this, 'login-response')">Response</div>
-        </div>
-        <div class="tab-content active" id="login-body">
-          <table>
-            <thead><tr><th>Field</th><th>Tipe</th><th>Keterangan</th></tr></thead>
-            <tbody>
-              <tr><td class="field-name">email <span class="required-tag">wajib</span></td><td class="field-type">string</td><td class="field-desc">Email terdaftar</td></tr>
-              <tr><td class="field-name">password <span class="required-tag">wajib</span></td><td class="field-type">string</td><td class="field-desc">Password akun</td></tr>
-            </tbody>
-          </table>
-        </div>
-        <div class="tab-content" id="login-response">
-          <pre>{
-  <span class="key">"message"</span>: <span class="string">"Login successful"</span>,
-  <span class="key">"id"</span>: <span class="number">1</span>,
-  <span class="key">"name"</span>: <span class="string">"Budi Santoso"</span>,
-  <span class="key">"email"</span>: <span class="string">"budi@example.com"</span>,
-  <span class="key">"token"</span>: <span class="string">"1|abc123xyz..."</span>
-}</pre>
-        </div>
-      </div>
-    </div>
-
-    <!-- Logout -->
-    <div class="endpoint" id="ep-logout">
-      <div class="endpoint-header" onclick="toggleEndpoint('ep-logout')">
-        <span class="endpoint-method method-POST">POST</span>
-        <span class="endpoint-path">/logout</span>
-        <span class="endpoint-desc">Hapus token aktif</span>
-        <span class="chevron">▼</span>
-      </div>
-      <div class="endpoint-body">
-        <div class="auth-note"><span class="icon">🔐</span> Butuh header <code>Authorization: Bearer {token}</code></div>
-        <pre>{
-  <span class="key">"message"</span>: <span class="string">"Logout successful"</span>
-}</pre>
-      </div>
-    </div>
-
-    <!-- Me -->
-    <div class="endpoint" id="ep-me">
-      <div class="endpoint-header" onclick="toggleEndpoint('ep-me')">
-        <span class="endpoint-method method-GET">GET</span>
-        <span class="endpoint-path">/me</span>
-        <span class="endpoint-desc">Info user & bisnis aktif</span>
-        <span class="chevron">▼</span>
-      </div>
-      <div class="endpoint-body">
-        <div class="auth-note"><span class="icon">🔐</span> Butuh header <code>Authorization: Bearer {token}</code></div>
-        <pre>{
-  <span class="key">"data"</span>: {
-    <span class="key">"user"</span>: { <span class="key">"id"</span>: <span class="number">1</span>, <span class="key">"full_name"</span>: <span class="string">"Budi"</span>, <span class="key">"email"</span>: <span class="string">"..."</span> },
-    <span class="key">"bisnis"</span>: { <span class="key">"id"</span>: <span class="number">1</span>, <span class="key">"bisnis_nama"</span>: <span class="string">"Warung Bu Sari"</span>, <span class="key">"..."</span>: <span class="string">"..."</span> }
-  }
-}</pre>
-      </div>
-    </div>
-  </div>
-
-  <!-- BISNIS -->
-  <div class="section" id="section-bisnis">
-    <div class="section-header">
-      <h2>Bisnis</h2>
-      <p>Pendaftaran dan pengelolaan data bisnis UMKM. Satu user hanya bisa punya satu bisnis.</p>
-    </div>
-
-    <div class="endpoint" id="ep-bisnis-store">
-      <div class="endpoint-header" onclick="toggleEndpoint('ep-bisnis-store')">
-        <span class="endpoint-method method-POST">POST</span>
-        <span class="endpoint-path">/bisnis</span>
-        <span class="endpoint-desc">Daftarkan bisnis baru</span>
-        <span class="chevron">▼</span>
-      </div>
-      <div class="endpoint-body">
-        <div class="auth-note"><span class="icon">🔐</span> Butuh Bearer token</div>
-        <div class="tabs">
-          <div class="tab active" onclick="switchTab(this, 'bisnis-store-body')">Body</div>
-          <div class="tab" onclick="switchTab(this, 'bisnis-store-example')">Contoh</div>
-          <div class="tab" onclick="switchTab(this, 'bisnis-store-response')">Response</div>
-        </div>
-        <div class="tab-content active" id="bisnis-store-body">
-          <table>
-            <thead><tr><th>Field</th><th>Tipe</th><th>Keterangan</th></tr></thead>
-            <tbody>
-              <tr><td class="field-name">bisnis_nama <span class="required-tag">wajib</span></td><td class="field-type">string</td><td class="field-desc">Nama bisnis</td></tr>
-              <tr><td class="field-name">bisnis_tipe <span class="required-tag">wajib</span></td><td class="field-type">enum</td><td class="field-desc"><code>barang</code> atau <code>jasa</code></td></tr>
-              <tr><td class="field-name">bisnis_mulai <span class="required-tag">wajib</span></td><td class="field-type">date</td><td class="field-desc">Format: <code>Y-m-d</code></td></tr>
-              <tr><td class="field-name">bisnis_buka <span class="required-tag">wajib</span></td><td class="field-type">time</td><td class="field-desc">Jam buka, format <code>HH:mm</code></td></tr>
-              <tr><td class="field-name">bisnis_tutup <span class="required-tag">wajib</span></td><td class="field-type">time</td><td class="field-desc">Jam tutup, format <code>HH:mm</code></td></tr>
-              <tr><td class="field-name">jumlah_pegawai <span class="required-tag">wajib</span></td><td class="field-type">integer</td><td class="field-desc">Min. 1</td></tr>
-              <tr><td class="field-name">target_market <span class="required-tag">wajib</span></td><td class="field-type">string</td><td class="field-desc">Deskripsi target pelanggan</td></tr>
-              <tr><td class="field-name">tujuan_bisnis <span class="required-tag">wajib</span></td><td class="field-type">array</td><td class="field-desc">Pilihan: <code>menaikkan omset</code>, <code>menambah pelanggan tetap</code>, <code>mengurangi biaya operasional</code>, <code>Meningkatkan keuntungan</code></td></tr>
-            </tbody>
-          </table>
-        </div>
-        <div class="tab-content" id="bisnis-store-example">
-          <pre>{
-  <span class="key">"bisnis_nama"</span>: <span class="string">"Warung Makan Bu Sari"</span>,
-  <span class="key">"bisnis_tipe"</span>: <span class="string">"jasa"</span>,
-  <span class="key">"bisnis_mulai"</span>: <span class="string">"2022-03-15"</span>,
-  <span class="key">"bisnis_buka"</span>: <span class="string">"07:00"</span>,
-  <span class="key">"bisnis_tutup"</span>: <span class="string">"21:00"</span>,
-  <span class="key">"jumlah_pegawai"</span>: <span class="number">4</span>,
-  <span class="key">"target_market"</span>: <span class="string">"Pelajar dan karyawan sekitar kawasan industri"</span>,
-  <span class="key">"tujuan_bisnis"</span>: [<span class="string">"menaikkan omset"</span>, <span class="string">"menambah pelanggan tetap"</span>]
-}</pre>
-        </div>
-        <div class="tab-content" id="bisnis-store-response">
-          <pre>{
-  <span class="key">"message"</span>: <span class="string">"UMKM berhasil terdaftar"</span>,
-  <span class="key">"data"</span>: {
-    <span class="key">"bisnis_nama"</span>: <span class="string">"Warung Makan Bu Sari"</span>,
-    <span class="key">"bisnis_tipe"</span>: <span class="string">"jasa"</span>,
-    <span class="key">"tujuan_bisnis"</span>: [<span class="string">"menaikkan omset"</span>, <span class="string">"menambah pelanggan tetap"</span>],
-    <span class="key">"..."</span>: <span class="string">"..."</span>
-  }
-}</pre>
-        </div>
-      </div>
-    </div>
-
-    <div class="endpoint" id="ep-bisnis-show">
-      <div class="endpoint-header" onclick="toggleEndpoint('ep-bisnis-show')">
-        <span class="endpoint-method method-GET">GET</span>
-        <span class="endpoint-path">/bisnis/<span class="param">{id}</span></span>
-        <span class="endpoint-desc">Detail bisnis</span>
-        <span class="chevron">▼</span>
-      </div>
-      <div class="endpoint-body">
-        <div class="auth-note"><span class="icon">🔐</span> Hanya pemilik bisnis yang bisa mengakses</div>
-        <pre>{
-  <span class="key">"message"</span>: <span class="string">"data bisnis didapatkan"</span>,
-  <span class="key">"data"</span>: {
-    <span class="key">"id"</span>: <span class="number">1</span>,
-    <span class="key">"bisnis_nama"</span>: <span class="string">"Warung Makan Bu Sari"</span>,
-    <span class="key">"reward_threshold"</span>: <span class="number">10</span>,
-    <span class="key">"member_token"</span>: <span class="string">"abc123..."</span>,
-    <span class="key">"QR_image_url"</span>: <span class="string">"/storage/qr/bisnis_1.svg"</span>
-  }
-}</pre>
-      </div>
-    </div>
-
-    <div class="endpoint" id="ep-bisnis-qr">
-      <div class="endpoint-header" onclick="toggleEndpoint('ep-bisnis-qr')">
-        <span class="endpoint-method method-GET">GET</span>
-        <span class="endpoint-path">/bisnis/qr/<span class="param">{member_token}</span></span>
-        <span class="endpoint-desc">Generate / regenerate QR</span>
-        <span class="chevron">▼</span>
-      </div>
-      <div class="endpoint-body">
-        <div class="auth-note"><span class="icon">🔐</span> Gunakan <code>member_token</code> dari data bisnis</div>
-        <pre>{
-  <span class="key">"qr_url"</span>: <span class="string">"/storage/qr/bisnis_1.svg"</span>
-}</pre>
-      </div>
-    </div>
-  </div>
-
-  <!-- PRODUK -->
-  <div class="section" id="section-produk">
-    <div class="section-header">
-      <h2>Produk</h2>
-      <p>CRUD produk milik bisnis. Produk digunakan sebagai referensi produk terlaris di data harian.</p>
-    </div>
-
-    <div class="endpoint" id="ep-produk-index">
-      <div class="endpoint-header" onclick="toggleEndpoint('ep-produk-index')">
-        <span class="endpoint-method method-GET">GET</span>
-        <span class="endpoint-path">/produk</span>
-        <span class="endpoint-desc">List semua produk</span>
-        <span class="chevron">▼</span>
-      </div>
-      <div class="endpoint-body">
-        <div class="auth-note"><span class="icon">🔐</span> Hanya menampilkan produk milik bisnis user yang login</div>
-        <h3 class="sub-heading">Query Params</h3>
-        <table>
-          <thead><tr><th>Param</th><th>Default</th><th>Keterangan</th></tr></thead>
-          <tbody>
-            <tr><td class="field-name">page</td><td class="field-type">1</td><td class="field-desc">Halaman pagination</td></tr>
-            <tr><td class="field-name">per_page</td><td class="field-type">25</td><td class="field-desc">Jumlah data per halaman</td></tr>
-          </tbody>
-        </table>
-        <pre style="margin-top:16px">{
-  <span class="key">"message"</span>: <span class="string">"Data produk berhasil diambil"</span>,
-  <span class="key">"currentPage"</span>: <span class="number">1</span>,
-  <span class="key">"data"</span>: [
-    { <span class="key">"id"</span>: <span class="number">1</span>, <span class="key">"produk_nama"</span>: <span class="string">"Nasi Ayam Goreng"</span>, <span class="key">"produk_harga"</span>: <span class="string">"15000.00"</span> }
-  ],
-  <span class="key">"total"</span>: <span class="number">3</span>, <span class="key">"last_page"</span>: <span class="number">1</span>
-}</pre>
-      </div>
-    </div>
-
-    <div class="endpoint" id="ep-produk-store">
-      <div class="endpoint-header" onclick="toggleEndpoint('ep-produk-store')">
-        <span class="endpoint-method method-POST">POST</span>
-        <span class="endpoint-path">/produk</span>
-        <span class="endpoint-desc">Tambah produk baru</span>
-        <span class="chevron">▼</span>
-      </div>
-      <div class="endpoint-body">
-        <table>
-          <thead><tr><th>Field</th><th>Tipe</th><th>Keterangan</th></tr></thead>
-          <tbody>
-            <tr><td class="field-name">bisnis_id <span class="required-tag">wajib</span></td><td class="field-type">integer</td><td class="field-desc">ID bisnis yang dimiliki user</td></tr>
-            <tr><td class="field-name">produk_nama <span class="required-tag">wajib</span></td><td class="field-type">string</td><td class="field-desc">Nama produk</td></tr>
-            <tr><td class="field-name">produk_harga <span class="required-tag">wajib</span></td><td class="field-type">decimal</td><td class="field-desc">Harga, min. 0</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <div class="endpoint" id="ep-produk-update">
-      <div class="endpoint-header" onclick="toggleEndpoint('ep-produk-update')">
-        <span class="endpoint-method method-PUT">PUT</span>
-        <span class="endpoint-path">/produk/<span class="param">{id}</span></span>
-        <span class="endpoint-desc">Update produk</span>
-        <span class="chevron">▼</span>
-      </div>
-      <div class="endpoint-body">
-        <table>
-          <thead><tr><th>Field</th><th>Tipe</th><th>Keterangan</th></tr></thead>
-          <tbody>
-            <tr><td class="field-name">produk_nama <span class="optional-tag">opsional</span></td><td class="field-type">string</td><td class="field-desc">Nama baru produk</td></tr>
-            <tr><td class="field-name">produk_harga <span class="optional-tag">opsional</span></td><td class="field-type">decimal</td><td class="field-desc">Harga baru, min. 0</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <div class="endpoint" id="ep-produk-destroy">
-      <div class="endpoint-header" onclick="toggleEndpoint('ep-produk-destroy')">
-        <span class="endpoint-method method-DELETE">DELETE</span>
-        <span class="endpoint-path">/produk/<span class="param">{id}</span></span>
-        <span class="endpoint-desc">Hapus produk</span>
-        <span class="chevron">▼</span>
-      </div>
-      <div class="endpoint-body">
-        <div class="warn-note"><span class="icon">⚠️</span> Jika produk ini sedang dipakai sebagai <code>produk_terlaris_id</code> di data harian, field tersebut akan menjadi <code>null</code> (nullOnDelete).</div>
-        <pre>{ <span class="key">"message"</span>: <span class="string">"Produk berhasil dihapus"</span> }</pre>
-      </div>
-    </div>
-  </div>
-
-  <!-- DATA HARIAN -->
-  <div class="section" id="section-dataharian">
-    <div class="section-header">
-      <h2>Data Harian</h2>
-      <p>Input dan pengelolaan data operasional harian bisnis. Data ini menjadi bahan analisa AI setiap 14 hari.</p>
-    </div>
-
-    <div class="endpoint" id="ep-dh-store">
-      <div class="endpoint-header" onclick="toggleEndpoint('ep-dh-store')">
-        <span class="endpoint-method method-POST">POST</span>
-        <span class="endpoint-path">/data-harian</span>
-        <span class="endpoint-desc">Input data hari ini</span>
-        <span class="chevron">▼</span>
-      </div>
-      <div class="endpoint-body">
-        <div class="auth-note"><span class="icon">🔐</span> <code>bisnis_id</code> diambil otomatis dari akun login, tidak perlu dikirim.</div>
-        <table>
-          <thead><tr><th>Field</th><th>Tipe</th><th>Keterangan</th></tr></thead>
-          <tbody>
-            <tr><td class="field-name">tanggal <span class="required-tag">wajib</span></td><td class="field-type">date</td><td class="field-desc">Format <code>Y-m-d</code></td></tr>
-            <tr><td class="field-name">pendapatan <span class="required-tag">wajib</span></td><td class="field-type">decimal</td><td class="field-desc">Total pendapatan hari ini</td></tr>
-            <tr><td class="field-name">pengeluaran <span class="required-tag">wajib</span></td><td class="field-type">decimal</td><td class="field-desc">Total pengeluaran hari ini</td></tr>
-            <tr><td class="field-name">jumlah_pembeli <span class="required-tag">wajib</span></td><td class="field-type">integer</td><td class="field-desc">Jumlah transaksi/pembeli</td></tr>
-            <tr><td class="field-name">produk_terlaris_id <span class="optional-tag">opsional</span></td><td class="field-type">integer</td><td class="field-desc">ID produk yang paling banyak terjual</td></tr>
-            <tr><td class="field-name">kendala <span class="optional-tag">opsional</span></td><td class="field-type">string</td><td class="field-desc">Kendala operasional hari ini</td></tr>
-            <tr><td class="field-name">note <span class="optional-tag">opsional</span></td><td class="field-type">string</td><td class="field-desc">Catatan tambahan</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <div class="endpoint" id="ep-dh-summary">
-      <div class="endpoint-header" onclick="toggleEndpoint('ep-dh-summary')">
-        <span class="endpoint-method method-GET">GET</span>
-        <span class="endpoint-path">/data-harian/summary</span>
-        <span class="endpoint-desc">Ringkasan statistik per periode</span>
-        <span class="chevron">▼</span>
-      </div>
-      <div class="endpoint-body">
-        <h3 class="sub-heading">Query Params</h3>
-        <table>
-          <thead><tr><th>Param</th><th>Tipe</th><th>Keterangan</th></tr></thead>
-          <tbody>
-            <tr><td class="field-name">dari <span class="required-tag">wajib</span></td><td class="field-type">date</td><td class="field-desc">Tanggal mulai, format <code>Y-m-d</code></td></tr>
-            <tr><td class="field-name">sampai <span class="required-tag">wajib</span></td><td class="field-type">date</td><td class="field-desc">Tanggal akhir, harus ≥ dari</td></tr>
-          </tbody>
-        </table>
-        <pre style="margin-top:16px">{
-  <span class="key">"message"</span>: <span class="string">"Summary data harian berhasil diambil"</span>,
-  <span class="key">"data"</span>: {
-    <span class="key">"periode"</span>: { <span class="key">"dari"</span>: <span class="string">"2024-07-01"</span>, <span class="key">"sampai"</span>: <span class="string">"2024-07-14"</span>, <span class="key">"total_hari"</span>: <span class="number">14</span> },
-    <span class="key">"total_pendapatan"</span>: <span class="number">18500000</span>,
-    <span class="key">"total_pengeluaran"</span>: <span class="number">7200000</span>,
-    <span class="key">"total_laba"</span>: <span class="number">11300000</span>,
-    <span class="key">"rata_rata_pendapatan"</span>: <span class="number">1321428.57</span>,
-    <span class="key">"rata_rata_pembeli"</span>: <span class="number">74</span>,
-    <span class="key">"produk_terlaris"</span>: { <span class="key">"produk_nama"</span>: <span class="string">"Nasi Ayam Goreng"</span>, <span class="key">"jumlah_hari"</span>: <span class="number">10</span> },
-    <span class="key">"kendala"</span>: [<span class="string">"Kompor mati 1 jam"</span>, <span class="string">"Bahan baku terlambat"</span>]
+        <div class="endpoint" id="ep-bs-show">
+          <div class="ep-header" onclick="toggle('ep-bs-show')">
+            <span class="ep-method m-GET">GET</span
+            ><span class="ep-path">/bisnis/<span class="param">{id}</span></span
+            ><span class="ep-desc">Detail bisnis</span
+            ><span class="chevron">▼</span>
+          </div>
+          <div class="ep-body">
+            <pre>{
+  <span class="k">"data"</span>: {
+    <span class="k">"id"</span>: <span class="n">1</span>, <span class="k">"bisnis_nama"</span>: <span class="s">"Warung Makan Bu Sari"</span>,
+    <span class="k">"reward_threshold"</span>: <span class="n">10</span>,   <span class="c">// null jika belum diatur</span>
+    <span class="k">"member_token"</span>: <span class="s">"abc123..."</span>,
+    <span class="k">"QR_image_url"</span>: <span class="s">"/storage/qr/bisnis_1.svg"</span>,
+    <span class="k">"tujuan_bisnis"</span>: [<span class="s">"menaikkan omset"</span>]
   }
 }</pre>
-      </div>
-    </div>
-  </div>
+          </div>
+        </div>
 
-  <!-- MEMBER -->
-  <div class="section" id="section-member">
-    <div class="section-header">
-      <h2>Member</h2>
-      <p>Sistem membership berbasis QR code. Pelanggan scan QR → input nomor HP → kunjungan tercatat otomatis.</p>
-    </div>
-
-    <div class="endpoint" id="ep-member-scan">
-      <div class="endpoint-header" onclick="toggleEndpoint('ep-member-scan')">
-        <span class="endpoint-method method-GET">GET</span>
-        <span class="endpoint-path">/member/scan/<span class="param">{token}</span></span>
-        <span class="public-tag">PUBLIC</span>
-        <span class="endpoint-desc">Validasi QR scan</span>
-        <span class="chevron">▼</span>
+        <div class="endpoint" id="ep-bs-qr">
+          <div class="ep-header" onclick="toggle('ep-bs-qr')">
+            <span class="ep-method m-GET">GET</span
+            ><span class="ep-path"
+              >/bisnis/qr/<span class="param">{member_token}</span></span
+            ><span class="ep-desc">Generate / regenerate QR</span
+            ><span class="chevron">▼</span>
+          </div>
+          <div class="ep-body">
+            <pre>{ <span class="k">"qr_url"</span>: <span class="s">"/storage/qr/bisnis_1.svg"</span> }</pre>
+          </div>
+        </div>
       </div>
-      <div class="endpoint-body">
-        <p style="color:var(--text2);font-size:13px;margin-bottom:16px">Dipanggil frontend saat pelanggan membuka link QR. Tidak butuh auth.</p>
-        <pre>{
-  <span class="key">"data"</span>: {
-    <span class="key">"bisnis_id"</span>: <span class="number">1</span>,
-    <span class="key">"bisnis_nama"</span>: <span class="string">"Warung Makan Bu Sari"</span>,
-    <span class="key">"member_token"</span>: <span class="string">"abc123..."</span>
+
+      <!-- ═══════════════ PRODUK ═══════════════ -->
+      <div class="section" id="section-produk">
+        <div class="section-header">
+          <h2>Produk</h2>
+          <p>
+            CRUD produk milik bisnis. Digunakan sebagai referensi produk
+            terlaris di data harian dan sebagai subjek analisa What If.
+          </p>
+        </div>
+
+        <div class="endpoint" id="ep-pr-index">
+          <div class="ep-header" onclick="toggle('ep-pr-index')">
+            <span class="ep-method m-GET">GET</span
+            ><span class="ep-path">/produk</span
+            ><span class="ep-desc">List semua produk</span
+            ><span class="chevron">▼</span>
+          </div>
+          <div class="ep-body">
+            <h3 class="sh">Query Params</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>Param</th>
+                  <th>Default</th>
+                  <th>Keterangan</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="fn">page</td>
+                  <td class="ft">1</td>
+                  <td class="fd">Halaman pagination</td>
+                </tr>
+                <tr>
+                  <td class="fn">per_page</td>
+                  <td class="ft">25</td>
+                  <td class="fd">Jumlah per halaman</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="endpoint" id="ep-pr-store">
+          <div class="ep-header" onclick="toggle('ep-pr-store')">
+            <span class="ep-method m-POST">POST</span
+            ><span class="ep-path">/produk</span
+            ><span class="ep-desc">Tambah produk</span
+            ><span class="chevron">▼</span>
+          </div>
+          <div class="ep-body">
+            <table>
+              <thead>
+                <tr>
+                  <th>Field</th>
+                  <th>Tipe</th>
+                  <th>Keterangan</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="fn">bisnis_id<span class="req">wajib</span></td>
+                  <td class="ft">integer</td>
+                  <td class="fd">ID bisnis milik user</td>
+                </tr>
+                <tr>
+                  <td class="fn">produk_nama<span class="req">wajib</span></td>
+                  <td class="ft">string</td>
+                  <td class="fd">Nama produk</td>
+                </tr>
+                <tr>
+                  <td class="fn">produk_harga<span class="req">wajib</span></td>
+                  <td class="ft">decimal</td>
+                  <td class="fd">Harga, min 0</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="endpoint" id="ep-pr-update">
+          <div class="ep-header" onclick="toggle('ep-pr-update')">
+            <span class="ep-method m-PUT">PUT</span
+            ><span class="ep-path">/produk/<span class="param">{id}</span></span
+            ><span class="ep-desc">Update produk</span
+            ><span class="chevron">▼</span>
+          </div>
+          <div class="ep-body">
+            <table>
+              <thead>
+                <tr>
+                  <th>Field</th>
+                  <th>Tipe</th>
+                  <th>Keterangan</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="fn">
+                    produk_nama<span class="opt">opsional</span>
+                  </td>
+                  <td class="ft">string</td>
+                  <td class="fd">Nama baru</td>
+                </tr>
+                <tr>
+                  <td class="fn">
+                    produk_harga<span class="opt">opsional</span>
+                  </td>
+                  <td class="ft">decimal</td>
+                  <td class="fd">Harga baru, min 0</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="endpoint" id="ep-pr-del">
+          <div class="ep-header" onclick="toggle('ep-pr-del')">
+            <span class="ep-method m-DELETE">DELETE</span
+            ><span class="ep-path">/produk/<span class="param">{id}</span></span
+            ><span class="ep-desc">Hapus produk</span
+            ><span class="chevron">▼</span>
+          </div>
+          <div class="ep-body">
+            <div class="note-warn">
+              <span class="ic">⚠️</span>Jika produk ini tercatat sebagai
+              <code>produk_terlaris_id</code> di data harian, field tersebut
+              akan menjadi <code>null</code> (nullOnDelete).
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════ DATA HARIAN ═══════════════ -->
+      <div class="section" id="section-dataharian">
+        <div class="section-header">
+          <h2>Data Harian</h2>
+          <p>
+            Input operasional harian. Harus terisi penuh 14 hari berturut-turut
+            sebelum analisa AI bisa dijalankan.
+          </p>
+        </div>
+
+        <div class="endpoint" id="ep-dh-store">
+          <div class="ep-header" onclick="toggle('ep-dh-store')">
+            <span class="ep-method m-POST">POST</span
+            ><span class="ep-path">/data-harian</span
+            ><span class="ep-desc">Input data hari ini</span
+            ><span class="chevron">▼</span>
+          </div>
+          <div class="ep-body">
+            <div class="note-blue">
+              <span class="ic">ℹ️</span><code>bisnis_id</code> diambil otomatis
+              dari akun login.
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Field</th>
+                  <th>Tipe</th>
+                  <th>Keterangan</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="fn">tanggal<span class="req">wajib</span></td>
+                  <td class="ft">date</td>
+                  <td class="fd">Format <code>Y-m-d</code></td>
+                </tr>
+                <tr>
+                  <td class="fn">pendapatan<span class="req">wajib</span></td>
+                  <td class="ft">decimal</td>
+                  <td class="fd">Total pendapatan hari ini</td>
+                </tr>
+                <tr>
+                  <td class="fn">pengeluaran<span class="req">wajib</span></td>
+                  <td class="ft">decimal</td>
+                  <td class="fd">Total pengeluaran hari ini</td>
+                </tr>
+                <tr>
+                  <td class="fn">
+                    jumlah_pembeli<span class="req">wajib</span>
+                  </td>
+                  <td class="ft">integer</td>
+                  <td class="fd">Jumlah transaksi/pembeli</td>
+                </tr>
+                <tr>
+                  <td class="fn">
+                    produk_terlaris_id<span class="opt">opsional</span>
+                  </td>
+                  <td class="ft">integer</td>
+                  <td class="fd">ID produk terlaris hari ini</td>
+                </tr>
+                <tr>
+                  <td class="fn">kendala<span class="opt">opsional</span></td>
+                  <td class="ft">string</td>
+                  <td class="fd">Kendala operasional hari ini</td>
+                </tr>
+                <tr>
+                  <td class="fn">note<span class="opt">opsional</span></td>
+                  <td class="ft">string</td>
+                  <td class="fd">Catatan tambahan</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="endpoint" id="ep-dh-summary">
+          <div class="ep-header" onclick="toggle('ep-dh-summary')">
+            <span class="ep-method m-GET">GET</span
+            ><span class="ep-path">/data-harian/summary</span
+            ><span class="ep-desc">Ringkasan statistik periode</span
+            ><span class="chevron">▼</span>
+          </div>
+          <div class="ep-body">
+            <h3 class="sh">Query Params</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>Param</th>
+                  <th>Tipe</th>
+                  <th>Keterangan</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="fn">dari<span class="req">wajib</span></td>
+                  <td class="ft">date</td>
+                  <td class="fd">Tanggal mulai <code>Y-m-d</code></td>
+                </tr>
+                <tr>
+                  <td class="fn">sampai<span class="req">wajib</span></td>
+                  <td class="fd">date</td>
+                  <td class="fd">Tanggal akhir, harus ≥ dari</td>
+                </tr>
+              </tbody>
+            </table>
+            <pre style="margin-top: 14px">{
+  <span class="k">"data"</span>: {
+    <span class="k">"total_pendapatan"</span>: <span class="n">18500000</span>, <span class="k">"total_laba"</span>: <span class="n">11300000</span>,
+    <span class="k">"rata_rata_pembeli"</span>: <span class="n">74</span>,
+    <span class="k">"produk_terlaris"</span>: { <span class="k">"produk_nama"</span>: <span class="s">"Nasi Ayam"</span>, <span class="k">"jumlah_hari"</span>: <span class="n">10</span> },
+    <span class="k">"kendala"</span>: [<span class="s">"Kompor mati"</span>, <span class="s">"Bahan terlambat"</span>]
   }
 }</pre>
+          </div>
+        </div>
       </div>
-    </div>
 
-    <div class="endpoint" id="ep-member-checkin">
-      <div class="endpoint-header" onclick="toggleEndpoint('ep-member-checkin')">
-        <span class="endpoint-method method-POST">POST</span>
-        <span class="endpoint-path">/member/checkin/<span class="param">{token}</span></span>
-        <span class="public-tag">PUBLIC</span>
-        <span class="endpoint-desc">Submit nomor HP pelanggan</span>
-        <span class="chevron">▼</span>
-      </div>
-      <div class="endpoint-body">
-        <table>
-          <thead><tr><th>Field</th><th>Tipe</th><th>Keterangan</th></tr></thead>
-          <tbody>
-            <tr><td class="field-name">member_phone <span class="required-tag">wajib</span></td><td class="field-type">string</td><td class="field-desc">Nomor HP pelanggan, format E.164 direkomendasikan</td></tr>
-          </tbody>
-        </table>
-        <pre style="margin-top:16px">{
-  <span class="key">"data"</span>: {
-    <span class="key">"member_phone"</span>: <span class="string">"+6281234567890"</span>,
-    <span class="key">"member_count"</span>: <span class="number">5</span>,
-    <span class="key">"reward"</span>: {
-      <span class="comment">// null jika pemilik belum set reward_threshold</span>
-      <span class="key">"is_eligible"</span>: <span class="bool">false</span>,
-      <span class="key">"kunjungan_saat_ini"</span>: <span class="number">5</span>,
-      <span class="key">"kunjungan_dibutuhkan"</span>: <span class="number">10</span>
+      <!-- ═══════════════ MEMBER ═══════════════ -->
+      <div class="section" id="section-member">
+        <div class="section-header">
+          <h2>Member</h2>
+          <p>
+            Membership berbasis QR. Pelanggan scan → input nomor HP → kunjungan
+            tercatat. Fitur reward harus diaktifkan oleh pemilik bisnis terlebih
+            dahulu.
+          </p>
+        </div>
+
+        <div class="endpoint" id="ep-mb-scan">
+          <div class="ep-header" onclick="toggle('ep-mb-scan')">
+            <span class="ep-method m-GET">GET</span
+            ><span class="ep-path"
+              >/member/scan/<span class="param">{token}</span></span
+            >
+            <span class="pub-tag">PUBLIC</span
+            ><span class="ep-desc">Validasi QR</span
+            ><span class="chevron">▼</span>
+          </div>
+          <div class="ep-body">
+            <pre>{ <span class="k">"data"</span>: { <span class="k">"bisnis_id"</span>: <span class="n">1</span>, <span class="k">"bisnis_nama"</span>: <span class="s">"..."</span>, <span class="k">"member_token"</span>: <span class="s">"abc..."</span> } }</pre>
+          </div>
+        </div>
+
+        <div class="endpoint" id="ep-mb-checkin">
+          <div class="ep-header" onclick="toggle('ep-mb-checkin')">
+            <span class="ep-method m-POST">POST</span
+            ><span class="ep-path"
+              >/member/checkin/<span class="param">{token}</span></span
+            >
+            <span class="pub-tag">PUBLIC</span
+            ><span class="ep-desc">Submit nomor HP pelanggan</span
+            ><span class="chevron">▼</span>
+          </div>
+          <div class="ep-body">
+            <table>
+              <thead>
+                <tr>
+                  <th>Field</th>
+                  <th>Tipe</th>
+                  <th>Keterangan</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="fn">member_phone<span class="req">wajib</span></td>
+                  <td class="ft">string</td>
+                  <td class="fd">Nomor HP, max 20 karakter</td>
+                </tr>
+              </tbody>
+            </table>
+            <pre style="margin-top: 14px">{
+  <span class="k">"data"</span>: {
+    <span class="k">"member_phone"</span>: <span class="s">"+6281234567890"</span>,
+    <span class="k">"member_count"</span>: <span class="n">5</span>,
+    <span class="k">"reward"</span>: {
+      <span class="c">// null jika reward_threshold belum diatur pemilik</span>
+      <span class="k">"is_eligible"</span>: <span class="b">false</span>,
+      <span class="k">"kunjungan_saat_ini"</span>: <span class="n">5</span>,
+      <span class="k">"kunjungan_dibutuhkan"</span>: <span class="n">10</span>
     }
   }
 }</pre>
-      </div>
-    </div>
+          </div>
+        </div>
 
-    <div class="endpoint" id="ep-member-reward-set">
-      <div class="endpoint-header" onclick="toggleEndpoint('ep-member-reward-set')">
-        <span class="endpoint-method method-POST">POST</span>
-        <span class="endpoint-path">/member/reward/set</span>
-        <span class="endpoint-desc">Atur threshold reward</span>
-        <span class="chevron">▼</span>
-      </div>
-      <div class="endpoint-body">
-        <div class="auth-note"><span class="icon">🔐</span> Bearer token · Harus diatur sebelum fitur reward bisa digunakan</div>
-        <div class="warn-note"><span class="icon">⚠️</span> Selama <code>reward_threshold</code> belum diatur, endpoint <code>GET /member/reward</code> akan mengembalikan error 422.</div>
-        <table>
-          <thead><tr><th>Field</th><th>Tipe</th><th>Keterangan</th></tr></thead>
-          <tbody>
-            <tr><td class="field-name">reward_threshold <span class="required-tag">wajib</span></td><td class="field-type">integer</td><td class="field-desc">Jumlah kunjungan minimum untuk dapat reward. Min. 1</td></tr>
-          </tbody>
-        </table>
-        <pre style="margin-top:16px">{
-  <span class="key">"message"</span>: <span class="string">"Reward threshold berhasil diatur"</span>,
-  <span class="key">"data"</span>: { <span class="key">"reward_threshold"</span>: <span class="number">10</span> }
-}</pre>
-      </div>
-    </div>
+        <div class="endpoint" id="ep-mb-reward-set">
+          <div class="ep-header" onclick="toggle('ep-mb-reward-set')">
+            <span class="ep-method m-POST">POST</span
+            ><span class="ep-path">/member/reward/set</span
+            ><span class="ep-desc">Atur threshold reward</span
+            ><span class="chevron">▼</span>
+          </div>
+          <div class="ep-body">
+            <div class="note-warn">
+              <span class="ic">⚠️</span>Wajib diatur sebelum
+              <code>GET /member/reward</code> bisa digunakan. Tanpa ini,
+              endpoint reward mengembalikan error 422.
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Field</th>
+                  <th>Tipe</th>
+                  <th>Keterangan</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="fn">
+                    reward_threshold<span class="req">wajib</span>
+                  </td>
+                  <td class="ft">integer</td>
+                  <td class="fd">
+                    Minimum kunjungan untuk dapat reward. Min. 1
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
 
-    <div class="endpoint" id="ep-member-reward">
-      <div class="endpoint-header" onclick="toggleEndpoint('ep-member-reward')">
-        <span class="endpoint-method method-GET">GET</span>
-        <span class="endpoint-path">/member/reward</span>
-        <span class="endpoint-desc">List member yang layak reward</span>
-        <span class="chevron">▼</span>
+        <div class="endpoint" id="ep-mb-reward">
+          <div class="ep-header" onclick="toggle('ep-mb-reward')">
+            <span class="ep-method m-GET">GET</span
+            ><span class="ep-path">/member/reward</span
+            ><span class="ep-desc">List member layak reward</span
+            ><span class="chevron">▼</span>
+          </div>
+          <div class="ep-body">
+            <div class="note-warn">
+              <span class="ic">⚠️</span>Error 422 jika
+              <code>reward_threshold</code> belum diatur.
+            </div>
+            <pre>{ <span class="k">"reward_threshold"</span>: <span class="n">10</span>, <span class="k">"total"</span>: <span class="n">3</span>, <span class="k">"data"</span>: [ ... ] }</pre>
+          </div>
+        </div>
       </div>
-      <div class="endpoint-body">
-        <div class="warn-note"><span class="icon">⚠️</span> Akan error 422 jika <code>reward_threshold</code> belum diatur di pengaturan bisnis.</div>
-        <pre>{
-  <span class="key">"reward_threshold"</span>: <span class="number">10</span>,
-  <span class="key">"total"</span>: <span class="number">3</span>,
-  <span class="key">"data"</span>: [
-    { <span class="key">"id"</span>: <span class="number">1</span>, <span class="key">"member_phone"</span>: <span class="string">"+6281234567890"</span>, <span class="key">"member_count"</span>: <span class="number">12</span> }
-  ]
-}</pre>
-      </div>
-    </div>
-  </div>
 
-  <!-- ANALISA -->
-  <div class="section" id="section-analisa">
-    <div class="section-header">
-      <h2>Analisa AI</h2>
-      <p>Analisa bisnis otomatis menggunakan Gemini 2.5 Flash. Berjalan per siklus 14 hari dihitung dari tanggal mulai bisnis. Setiap siklus hanya bisa di-generate sekali, dan hanya jika semua 14 hari data harian sudah terisi.</p>
-    </div>
+      <!-- ═══════════════ ANALISA ═══════════════ -->
+      <div class="section" id="section-analisa">
+        <div class="section-header">
+          <h2>Analisa AI</h2>
+          <p>
+            Analisa bisnis otomatis per siklus 14 hari menggunakan Gemini 2.5
+            Flash. Orientasi analisa mengikuti roadmap aktif — jika tidak ada,
+            fallback ke tujuan bisnis dari profil.
+          </p>
+        </div>
 
-    <div class="endpoint" id="ep-analisa-status">
-      <div class="endpoint-header" onclick="toggleEndpoint('ep-analisa-status')">
-        <span class="endpoint-method method-GET">GET</span>
-        <span class="endpoint-path">/analisa/status</span>
-        <span class="endpoint-desc">Cek status siklus saat ini</span>
-        <span class="chevron">▼</span>
-      </div>
-      <div class="endpoint-body">
-        <p style="color:var(--text2);font-size:13px;margin-bottom:16px">Gunakan endpoint ini di frontend untuk menampilkan progress pengisian data dan tombol generate analisa.</p>
-        <pre>{
-  <span class="key">"data"</span>: {
-    <span class="key">"periode"</span>: {
-      <span class="key">"dari"</span>: <span class="string">"2024-07-01"</span>,
-      <span class="key">"sampai"</span>: <span class="string">"2024-07-14"</span>,
-      <span class="key">"siklus_ke"</span>: <span class="number">3</span>
-    },
-    <span class="key">"jumlah_data_terisi"</span>: <span class="number">11</span>,
-    <span class="key">"jumlah_data_dibutuhkan"</span>: <span class="number">14</span>,
-    <span class="key">"data_lengkap"</span>: <span class="bool">false</span>,
-    <span class="key">"sudah_dianalisa"</span>: <span class="bool">false</span>,
-    <span class="key">"bisa_generate"</span>: <span class="bool">false</span>
-    <span class="comment">// bisa_generate = true hanya jika data_lengkap && !sudah_dianalisa</span>
+        <div class="note-green">
+          <span class="ic">💡</span><strong>Orientasi AI:</strong> Evaluasi dan
+          rekomendasi selalu diarahkan sesuai target. Jika ada roadmap aktif, AI
+          menilai seberapa jauh performa mendukung tiap target roadmap. Jika
+          tidak ada roadmap, AI mengacu pada <code>tujuan_bisnis</code> yang
+          diisi saat daftar bisnis.
+        </div>
+
+        <div class="endpoint" id="ep-an-status">
+          <div class="ep-header" onclick="toggle('ep-an-status')">
+            <span class="ep-method m-GET">GET</span
+            ><span class="ep-path">/analisa/status</span
+            ><span class="ep-desc">Status siklus saat ini</span
+            ><span class="chevron">▼</span>
+          </div>
+          <div class="ep-body">
+            <p
+              style="color: var(--text2); font-size: 13px; margin-bottom: 12px"
+            >
+              Gunakan endpoint ini di FE untuk menampilkan progress bar
+              pengisian data dan mengaktifkan tombol generate.
+            </p>
+            <pre>{
+  <span class="k">"data"</span>: {
+    <span class="k">"periode"</span>: { <span class="k">"dari"</span>: <span class="s">"2024-07-01"</span>, <span class="k">"sampai"</span>: <span class="s">"2024-07-14"</span>, <span class="k">"siklus_ke"</span>: <span class="n">3</span> },
+    <span class="k">"jumlah_data_terisi"</span>: <span class="n">11</span>,
+    <span class="k">"jumlah_data_dibutuhkan"</span>: <span class="n">14</span>,
+    <span class="k">"data_lengkap"</span>: <span class="b">false</span>,
+    <span class="k">"sudah_dianalisa"</span>: <span class="b">false</span>,
+    <span class="k">"bisa_generate"</span>: <span class="b">false</span>  <span class="c">// true hanya jika data_lengkap && !sudah_dianalisa</span>
   }
 }</pre>
-      </div>
-    </div>
+          </div>
+        </div>
 
-    <div class="endpoint" id="ep-analisa-generate">
-      <div class="endpoint-header" onclick="toggleEndpoint('ep-analisa-generate')">
-        <span class="endpoint-method method-POST">POST</span>
-        <span class="endpoint-path">/analisa/generate</span>
-        <span class="endpoint-desc">Generate analisa AI</span>
-        <span class="chevron">▼</span>
-      </div>
-      <div class="endpoint-body">
-        <div class="auth-note"><span class="icon">🔐</span> Bearer token · Tidak perlu body — periode ditentukan otomatis oleh sistem</div>
-        <div class="warn-note"><span class="icon">⚠️</span> Akan ditolak (422) jika: data harian belum lengkap 14 hari, atau siklus ini sudah pernah dianalisa.</div>
-        <pre><span class="comment">// Success (201)</span>
-{
-  <span class="key">"message"</span>: <span class="string">"Analisa berhasil digenerate"</span>,
-  <span class="key">"data"</span>: {
-    <span class="key">"periode"</span>: { <span class="key">"dari"</span>: <span class="string">"2024-07-01"</span>, <span class="key">"sampai"</span>: <span class="string">"2024-07-14"</span> },
-    <span class="key">"eval"</span>: { <span class="key">"id"</span>: <span class="number">5</span>, <span class="key">"pesan"</span>: <span class="string">"Selama periode ini..."</span>, <span class="key">"created_at"</span>: <span class="string">"..."</span> },
-    <span class="key">"plan"</span>: { <span class="key">"id"</span>: <span class="number">6</span>, <span class="key">"pesan"</span>: <span class="string">"Rekomendasi: 1. ..."</span>, <span class="key">"created_at"</span>: <span class="string">"..."</span> }
+        <div class="endpoint" id="ep-an-generate">
+          <div class="ep-header" onclick="toggle('ep-an-generate')">
+            <span class="ep-method m-POST">POST</span
+            ><span class="ep-path">/analisa/generate</span
+            ><span class="ep-desc">Generate analisa AI</span
+            ><span class="chevron">▼</span>
+          </div>
+          <div class="ep-body">
+            <div class="note-blue">
+              <span class="ic">🔐</span>Tidak perlu body — periode ditentukan
+              otomatis dari siklus 14 hari bisnis.
+            </div>
+            <div class="note-warn">
+              <span class="ic">⚠️</span>Ditolak 422 jika: data harian &lt;14
+              hari, atau siklus ini sudah pernah dianalisa.
+            </div>
+            <pre>{
+  <span class="k">"data"</span>: {
+    <span class="k">"periode"</span>: { <span class="k">"dari"</span>: <span class="s">"2024-07-01"</span>, <span class="k">"sampai"</span>: <span class="s">"2024-07-14"</span> },
+    <span class="k">"orientasi_pakai"</span>: <span class="s">"roadmap"</span>,  <span class="c">// atau "tujuan_bisnis"</span>
+    <span class="k">"eval"</span>: { <span class="k">"id"</span>: <span class="n">5</span>, <span class="k">"pesan"</span>: <span class="s">"Selama periode ini..."</span>, <span class="k">"created_at"</span>: <span class="s">"..."</span> },
+    <span class="k">"plan"</span>: { <span class="k">"id"</span>: <span class="n">6</span>, <span class="k">"pesan"</span>: <span class="s">"Rekomendasi: 1. ..."</span>, <span class="k">"created_at"</span>: <span class="s">"..."</span> }
   }
 }
 
-<span class="comment">// Error: data belum lengkap (422)</span>
-{ <span class="key">"message"</span>: <span class="string">"Data harian belum lengkap. Masih kurang 3 hari input data (periode 2024-07-01 s/d 2024-07-14 harus terisi semua 11/14 hari)."</span> }
+<span class="c">// Error: data belum lengkap (422)</span>
+{ <span class="k">"message"</span>: <span class="s">"Data harian belum lengkap. Masih kurang 3 hari (11/14 hari)."</span> }
 
-<span class="comment">// Error: sudah dianalisa (422)</span>
-{ <span class="key">"message"</span>: <span class="string">"Periode ini (2024-07-01 s/d 2024-07-14) sudah pernah dianalisa. Analisa berikutnya tersedia pada siklus berikutnya."</span> }</pre>
-      </div>
-    </div>
+<span class="c">// Error: sudah dianalisa (422)</span>
+{ <span class="k">"message"</span>: <span class="s">"Periode ini sudah pernah dianalisa. Analisa berikutnya tersedia pada siklus berikutnya."</span> }</pre>
+          </div>
+        </div>
 
-    <div class="endpoint" id="ep-analisa-latest">
-      <div class="endpoint-header" onclick="toggleEndpoint('ep-analisa-latest')">
-        <span class="endpoint-method method-GET">GET</span>
-        <span class="endpoint-path">/analisa/latest</span>
-        <span class="endpoint-desc">Eval + plan terbaru sekaligus</span>
-        <span class="chevron">▼</span>
+        <div class="endpoint" id="ep-an-latest">
+          <div class="ep-header" onclick="toggle('ep-an-latest')">
+            <span class="ep-method m-GET">GET</span
+            ><span class="ep-path">/analisa/latest</span
+            ><span class="ep-desc">Eval + plan terbaru</span
+            ><span class="chevron">▼</span>
+          </div>
+          <div class="ep-body">
+            <pre>{ <span class="k">"data"</span>: { <span class="k">"eval"</span>: { <span class="k">"id"</span>: <span class="n">5</span>, <span class="k">"pesan"</span>: <span class="s">"..."</span> }, <span class="k">"plan"</span>: { <span class="k">"id"</span>: <span class="n">6</span>, <span class="k">"pesan"</span>: <span class="s">"..."</span> } } }</pre>
+          </div>
+        </div>
+
+        <div class="endpoint" id="ep-an-index">
+          <div class="ep-header" onclick="toggle('ep-an-index')">
+            <span class="ep-method m-GET">GET</span
+            ><span class="ep-path">/analisa</span
+            ><span class="ep-desc">Riwayat semua analisa</span
+            ><span class="chevron">▼</span>
+          </div>
+          <div class="ep-body">
+            <h3 class="sh">Query Params</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>Param</th>
+                  <th>Default</th>
+                  <th>Keterangan</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="fn">page</td>
+                  <td class="ft">1</td>
+                  <td class="fd">Halaman</td>
+                </tr>
+                <tr>
+                  <td class="fn">per_page</td>
+                  <td class="ft">25</td>
+                  <td class="fd">Jumlah per halaman</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
-      <div class="endpoint-body">
-        <pre>{
-  <span class="key">"data"</span>: {
-    <span class="key">"eval"</span>: { <span class="key">"id"</span>: <span class="number">5</span>, <span class="key">"pesan"</span>: <span class="string">"..."</span>, <span class="key">"created_at"</span>: <span class="string">"..."</span> },
-    <span class="key">"plan"</span>: { <span class="key">"id"</span>: <span class="number">6</span>, <span class="key">"pesan"</span>: <span class="string">"..."</span>, <span class="key">"created_at"</span>: <span class="string">"..."</span> }
+
+      <!-- ═══════════════ ROADMAP ═══════════════ -->
+      <div class="section" id="section-roadmap">
+        <div class="section-header">
+          <h2>Roadmap</h2>
+          <p>
+            Target/rencana pencapaian bisnis yang dibuat manual oleh user.
+            Roadmap aktif dijadikan orientasi utama oleh AI saat generate
+            analisa dan what if. Jika tidak ada roadmap aktif, AI fallback ke
+            tujuan bisnis.
+          </p>
+        </div>
+
+        <div class="note-green">
+          <span class="ic">🎯</span
+          ><strong>Peran roadmap dalam AI:</strong> Semakin spesifik target yang
+          diisi (<code>target_metrik</code>, <code>target_nilai</code>,
+          <code>target_tanggal</code>), semakin terarah analisa dan rekomendasi
+          yang dihasilkan AI.
+        </div>
+
+        <div class="endpoint" id="ep-rm-index">
+          <div class="ep-header" onclick="toggle('ep-rm-index')">
+            <span class="ep-method m-GET">GET</span
+            ><span class="ep-path">/roadmap</span
+            ><span class="ep-desc">List semua roadmap</span
+            ><span class="chevron">▼</span>
+          </div>
+          <div class="ep-body">
+            <h3 class="sh">Query Params</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>Param</th>
+                  <th>Default</th>
+                  <th>Keterangan</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="fn">page</td>
+                  <td class="ft">1</td>
+                  <td class="fd">Halaman</td>
+                </tr>
+                <tr>
+                  <td class="fn">per_page</td>
+                  <td class="ft">25</td>
+                  <td class="fd">Jumlah per halaman</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="endpoint" id="ep-rm-store">
+          <div class="ep-header" onclick="toggle('ep-rm-store')">
+            <span class="ep-method m-POST">POST</span
+            ><span class="ep-path">/roadmap</span
+            ><span class="ep-desc">Buat roadmap baru</span
+            ><span class="chevron">▼</span>
+          </div>
+          <div class="ep-body">
+            <div class="tabs">
+              <div class="tab active" onclick="tab(this, 'rm-b')">Body</div>
+              <div class="tab" onclick="tab(this, 'rm-e')">Contoh</div>
+              <div class="tab" onclick="tab(this, 'rm-r')">Response</div>
+            </div>
+            <div class="tab-content active" id="rm-b">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Field</th>
+                    <th>Tipe</th>
+                    <th>Keterangan</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="fn">judul<span class="req">wajib</span></td>
+                    <td class="ft">string</td>
+                    <td class="fd">Judul target / rencana</td>
+                  </tr>
+                  <tr>
+                    <td class="fn">
+                      deskripsi<span class="opt">opsional</span>
+                    </td>
+                    <td class="ft">string</td>
+                    <td class="fd">Penjelasan lebih detail</td>
+                  </tr>
+                  <tr>
+                    <td class="fn">
+                      target_metrik<span class="opt">opsional</span>
+                    </td>
+                    <td class="ft">string</td>
+                    <td class="fd">
+                      Metrik target, contoh: <code>omset</code>,
+                      <code>jumlah_pembeli</code>, <code>laba</code>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="fn">
+                      target_nilai<span class="opt">opsional</span>
+                    </td>
+                    <td class="ft">decimal</td>
+                    <td class="fd">
+                      Nilai target, contoh: <code>50000000</code>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="fn">
+                      target_tanggal<span class="opt">opsional</span>
+                    </td>
+                    <td class="ft">date</td>
+                    <td class="fd">
+                      Deadline target, format <code>Y-m-d</code>, harus setelah
+                      hari ini
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="fn">status<span class="opt">opsional</span></td>
+                    <td class="ft">enum</td>
+                    <td class="fd">
+                      <code>aktif</code> (default), <code>tercapai</code>,
+                      <code>dibatalkan</code>. Hanya status
+                      <code>aktif</code> yang dijadikan acuan AI.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="tab-content" id="rm-e">
+              <pre>{
+  <span class="k">"judul"</span>: <span class="s">"Capai omset 50 juta bulan September"</span>,
+  <span class="k">"deskripsi"</span>: <span class="s">"Fokus naikkan penjualan produk unggulan dan tambah promosi"</span>,
+  <span class="k">"target_metrik"</span>: <span class="s">"omset"</span>,
+  <span class="k">"target_nilai"</span>: <span class="n">50000000</span>,
+  <span class="k">"target_tanggal"</span>: <span class="s">"2024-09-30"</span>,
+  <span class="k">"status"</span>: <span class="s">"aktif"</span>
+}</pre>
+            </div>
+            <div class="tab-content" id="rm-r">
+              <pre>{
+  <span class="k">"message"</span>: <span class="s">"Roadmap berhasil dibuat"</span>,
+  <span class="k">"data"</span>: {
+    <span class="k">"id"</span>: <span class="n">1</span>, <span class="k">"judul"</span>: <span class="s">"Capai omset 50 juta bulan September"</span>,
+    <span class="k">"target_metrik"</span>: <span class="s">"omset"</span>, <span class="k">"target_nilai"</span>: <span class="s">"50000000.00"</span>,
+    <span class="k">"target_tanggal"</span>: <span class="s">"2024-09-30"</span>, <span class="k">"status"</span>: <span class="s">"aktif"</span>
   }
 }</pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="endpoint" id="ep-rm-update">
+          <div class="ep-header" onclick="toggle('ep-rm-update')">
+            <span class="ep-method m-PUT">PUT</span
+            ><span class="ep-path"
+              >/roadmap/<span class="param">{id}</span></span
+            ><span class="ep-desc">Update roadmap</span
+            ><span class="chevron">▼</span>
+          </div>
+          <div class="ep-body">
+            <p
+              style="color: var(--text2); font-size: 13px; margin-bottom: 12px"
+            >
+              Semua field sama seperti store, semuanya opsional. Untuk menandai
+              roadmap selesai, update <code>status</code> menjadi
+              <code>tercapai</code> — roadmap ini tidak akan lagi dijadikan
+              acuan AI.
+            </p>
+          </div>
+        </div>
+
+        <div class="endpoint" id="ep-rm-del">
+          <div class="ep-header" onclick="toggle('ep-rm-del')">
+            <span class="ep-method m-DELETE">DELETE</span
+            ><span class="ep-path"
+              >/roadmap/<span class="param">{id}</span></span
+            ><span class="ep-desc">Hapus roadmap</span
+            ><span class="chevron">▼</span>
+          </div>
+          <div class="ep-body">
+            <pre>{ <span class="k">"message"</span>: <span class="s">"Roadmap berhasil dihapus"</span> }</pre>
+          </div>
+        </div>
       </div>
-    </div>
 
-    <div class="endpoint" id="ep-analisa-index">
-      <div class="endpoint-header" onclick="toggleEndpoint('ep-analisa-index')">
-        <span class="endpoint-method method-GET">GET</span>
-        <span class="endpoint-path">/analisa</span>
-        <span class="endpoint-desc">Riwayat semua analisa</span>
-        <span class="chevron">▼</span>
+      <!-- ═══════════════ WHAT IF ═══════════════ -->
+      <div class="section" id="section-whatif">
+        <div class="section-header">
+          <h2>What If</h2>
+          <p>
+            Simulasi skenario bisnis menggunakan Gemini 2.5 Flash. Batas 3
+            prediksi per hari, reset tiap tengah malam. Analisa selalu
+            berorientasi pada roadmap aktif — jika tidak ada, fallback ke tujuan
+            bisnis.
+          </p>
+        </div>
+
+        <div class="note-green">
+          <span class="ic">🎯</span><strong>Orientasi What If:</strong> Sama
+          seperti analisa, hasil prediksi diarahkan untuk mendukung pencapaian
+          roadmap aktif atau tujuan bisnis. Semakin detail roadmap, semakin
+          relevan rekomendasinya.
+        </div>
+
+        <div class="endpoint" id="ep-wi-kuota">
+          <div class="ep-header" onclick="toggle('ep-wi-kuota')">
+            <span class="ep-method m-GET">GET</span
+            ><span class="ep-path">/what-if/kuota</span
+            ><span class="ep-desc">Cek sisa kuota hari ini</span
+            ><span class="chevron">▼</span>
+          </div>
+          <div class="ep-body">
+            <pre>{
+  <span class="k">"data"</span>: {
+    <span class="k">"terpakai"</span>: <span class="n">1</span>, <span class="k">"batas"</span>: <span class="n">3</span>, <span class="k">"sisa"</span>: <span class="n">2</span>,
+    <span class="k">"bisa_pakai"</span>: <span class="b">true</span>
+  }
+}</pre>
+          </div>
+        </div>
+
+        <div class="endpoint" id="ep-wi-produk">
+          <div class="ep-header" onclick="toggle('ep-wi-produk')">
+            <span class="ep-method m-POST">POST</span
+            ><span class="ep-path">/what-if/predict</span
+            ><span class="ep-desc">Predict — tipe produk</span
+            ><span class="chevron">▼</span>
+          </div>
+          <div class="ep-body">
+            <div class="tabs">
+              <div class="tab active" onclick="tab(this, 'wi-p-b')">Body</div>
+              <div class="tab" onclick="tab(this, 'wi-p-f')">Flow Rating</div>
+              <div class="tab" onclick="tab(this, 'wi-p-r')">Response</div>
+            </div>
+            <div class="tab-content active" id="wi-p-b">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Field</th>
+                    <th>Tipe</th>
+                    <th>Keterangan</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="fn">tipe<span class="req">wajib</span></td>
+                    <td class="ft">enum</td>
+                    <td class="fd">Isi <code>produk</code></td>
+                  </tr>
+                  <tr>
+                    <td class="fn">produk_id<span class="req">wajib</span></td>
+                    <td class="ft">integer</td>
+                    <td class="fd">ID produk yang akan disimulasikan</td>
+                  </tr>
+                  <tr>
+                    <td class="fn">perubahan<span class="req">wajib</span></td>
+                    <td class="ft">enum</td>
+                    <td class="fd">
+                      <code>naik</code> atau <code>turun</code>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="fn">nilai<span class="req">wajib</span></td>
+                    <td class="ft">decimal</td>
+                    <td class="fd">Nominal perubahan harga (bukan persen)</td>
+                  </tr>
+                  <tr>
+                    <td class="fn">
+                      rating_manual<span class="opt">opsional</span>
+                    </td>
+                    <td class="ft">integer</td>
+                    <td class="fd">
+                      Rating 1–10 performa produk. Diisi jika produk belum
+                      pernah jadi terlaris (lihat tab Flow Rating)
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="tab-content" id="wi-p-f">
+              <div class="note-warn">
+                <span class="ic">⚠️</span>Jika produk belum pernah tercatat
+                sebagai produk terlaris di data harian, BE mengembalikan
+                response 422 dengan <code>need_rating: true</code>. FE harus
+                menampilkan input rating 1–10, lalu kirim ulang request dengan
+                field <code>rating_manual</code>.
+              </div>
+              <pre><span class="c">// Step 1: kirim tanpa rating_manual</span>
+POST /what-if/predict
+{ <span class="k">"tipe"</span>: <span class="s">"produk"</span>, <span class="k">"produk_id"</span>: <span class="n">3</span>, <span class="k">"perubahan"</span>: <span class="s">"naik"</span>, <span class="k">"nilai"</span>: <span class="n">5000</span> }
+
+<span class="c">// Response 422 — FE tampilkan input rating</span>
+{
+  <span class="k">"message"</span>: <span class="s">"Data historis produk ini tidak tersedia"</span>,
+  <span class="k">"need_rating"</span>: <span class="b">true</span>,
+  <span class="k">"info"</span>: <span class="s">"Produk \"Es Jeruk\" belum pernah tercatat sebagai produk terlaris. Berikan rating 1-10..."</span>
+}
+
+<span class="c">// Step 2: kirim ulang dengan rating_manual</span>
+{ <span class="k">"tipe"</span>: <span class="s">"produk"</span>, <span class="k">"produk_id"</span>: <span class="n">3</span>, <span class="k">"perubahan"</span>: <span class="s">"naik"</span>, <span class="k">"nilai"</span>: <span class="n">5000</span>, <span class="k">"rating_manual"</span>: <span class="n">7</span> }</pre>
+            </div>
+            <div class="tab-content" id="wi-p-r">
+              <pre>{
+  <span class="k">"message"</span>: <span class="s">"Prediksi what if berhasil"</span>,
+  <span class="k">"data"</span>: {
+    <span class="k">"id"</span>: <span class="n">1</span>, <span class="k">"tipe"</span>: <span class="s">"produk"</span>,
+    <span class="k">"produk"</span>: { <span class="k">"produk_nama"</span>: <span class="s">"Nasi Ayam"</span>, <span class="k">"produk_harga"</span>: <span class="s">"15000.00"</span> },
+    <span class="k">"skenario"</span>: { <span class="k">"harga_lama"</span>: <span class="n">15000</span>, <span class="k">"harga_baru"</span>: <span class="n">20000</span>, <span class="k">"perubahan"</span>: <span class="s">"naik"</span> },
+    <span class="k">"hasil_analisa"</span>: <span class="s">"DAMPAK:\n...\n\nPELUANG:\n...\n\nRISIKO:\n...\n\nREKOMENDASI:\n..."</span>,
+    <span class="k">"roadmap_acuan"</span>: [{ <span class="k">"judul"</span>: <span class="s">"Capai omset 50 juta"</span>, <span class="k">"target_nilai"</span>: <span class="n">50000000</span> }]
+  },
+  <span class="k">"kuota"</span>: { <span class="k">"terpakai"</span>: <span class="n">2</span>, <span class="k">"batas"</span>: <span class="n">3</span>, <span class="k">"sisa"</span>: <span class="n">1</span> }
+}</pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="endpoint" id="ep-wi-biaya">
+          <div class="ep-header" onclick="toggle('ep-wi-biaya')">
+            <span class="ep-method m-POST">POST</span
+            ><span class="ep-path">/what-if/predict</span
+            ><span class="ep-desc">Predict — tipe biaya</span
+            ><span class="chevron">▼</span>
+          </div>
+          <div class="ep-body">
+            <table>
+              <thead>
+                <tr>
+                  <th>Field</th>
+                  <th>Tipe</th>
+                  <th>Keterangan</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="fn">tipe<span class="req">wajib</span></td>
+                  <td class="ft">enum</td>
+                  <td class="fd">Isi <code>biaya</code></td>
+                </tr>
+                <tr>
+                  <td class="fn">jenis_biaya<span class="req">wajib</span></td>
+                  <td class="ft">string</td>
+                  <td class="fd">
+                    Jenis biaya yang berubah, contoh: <code>bahan baku</code>,
+                    <code>sewa tempat</code>, <code>gaji pegawai</code>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="fn">perubahan<span class="req">wajib</span></td>
+                  <td class="ft">enum</td>
+                  <td class="fd"><code>naik</code> atau <code>turun</code></td>
+                </tr>
+                <tr>
+                  <td class="fn">persen<span class="req">wajib</span></td>
+                  <td class="ft">decimal</td>
+                  <td class="fd">Persentase perubahan, 0–100</td>
+                </tr>
+              </tbody>
+            </table>
+            <pre style="margin-top: 14px"><span class="c">// Contoh body</span>
+{ <span class="k">"tipe"</span>: <span class="s">"biaya"</span>, <span class="k">"jenis_biaya"</span>: <span class="s">"bahan baku"</span>, <span class="k">"perubahan"</span>: <span class="s">"naik"</span>, <span class="k">"persen"</span>: <span class="n">15</span> }</pre>
+          </div>
+        </div>
+
+        <div class="endpoint" id="ep-wi-jam">
+          <div class="ep-header" onclick="toggle('ep-wi-jam')">
+            <span class="ep-method m-POST">POST</span
+            ><span class="ep-path">/what-if/predict</span
+            ><span class="ep-desc">Predict — tipe jam operasional</span
+            ><span class="chevron">▼</span>
+          </div>
+          <div class="ep-body">
+            <table>
+              <thead>
+                <tr>
+                  <th>Field</th>
+                  <th>Tipe</th>
+                  <th>Keterangan</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="fn">tipe<span class="req">wajib</span></td>
+                  <td class="ft">enum</td>
+                  <td class="fd">Isi <code>jam_operasional</code></td>
+                </tr>
+                <tr>
+                  <td class="fn">buka_baru<span class="req">wajib</span></td>
+                  <td class="ft">time</td>
+                  <td class="fd">Jam buka baru, format <code>HH:mm</code></td>
+                </tr>
+                <tr>
+                  <td class="fn">tutup_baru<span class="req">wajib</span></td>
+                  <td class="ft">time</td>
+                  <td class="fd">Jam tutup baru, format <code>HH:mm</code></td>
+                </tr>
+              </tbody>
+            </table>
+            <pre style="margin-top: 14px"><span class="c">// Contoh body</span>
+{ <span class="k">"tipe"</span>: <span class="s">"jam_operasional"</span>, <span class="k">"buka_baru"</span>: <span class="s">"06:00"</span>, <span class="k">"tutup_baru"</span>: <span class="s">"23:00"</span> }</pre>
+          </div>
+        </div>
+
+        <div class="endpoint" id="ep-wi-index">
+          <div class="ep-header" onclick="toggle('ep-wi-index')">
+            <span class="ep-method m-GET">GET</span
+            ><span class="ep-path">/what-if</span
+            ><span class="ep-desc">Riwayat semua prediksi</span
+            ><span class="chevron">▼</span>
+          </div>
+          <div class="ep-body">
+            <h3 class="sh">Query Params</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>Param</th>
+                  <th>Default</th>
+                  <th>Keterangan</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="fn">page</td>
+                  <td class="ft">1</td>
+                  <td class="fd">Halaman</td>
+                </tr>
+                <tr>
+                  <td class="fn">per_page</td>
+                  <td class="ft">25</td>
+                  <td class="fd">Jumlah per halaman</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
-      <div class="endpoint-body">
-        <h3 class="sub-heading">Query Params</h3>
-        <table>
-          <thead><tr><th>Param</th><th>Default</th><th>Keterangan</th></tr></thead>
-          <tbody>
-            <tr><td class="field-name">page</td><td class="field-type">1</td><td class="field-desc">Halaman</td></tr>
-            <tr><td class="field-name">per_page</td><td class="field-type">25</td><td class="field-desc">Jumlah per halaman</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
+    </main>
 
-</main>
+    <script>
+      function showSection(name, el) {
+        document
+          .querySelectorAll(".section")
+          .forEach((s) => s.classList.remove("active"));
+        document
+          .querySelectorAll(".nav-item")
+          .forEach((n) => n.classList.remove("active"));
+        document.getElementById("section-" + name).classList.add("active");
+        el.classList.add("active");
+      }
 
-<script>
-  function showSection(name, el) {
-    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    document.getElementById('section-' + name).classList.add('active');
-    el.classList.add('active');
-  }
+      function toggle(id) {
+        document.getElementById(id).classList.toggle("open");
+      }
 
-  function toggleEndpoint(id) {
-    document.getElementById(id).classList.toggle('open');
-  }
-
-  function switchTab(el, contentId) {
-    const body = el.closest('.endpoint-body');
-    body.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    body.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-    el.classList.add('active');
-    document.getElementById(contentId).classList.add('active');
-  }
-</script>
-</body>
+      function tab(el, contentId) {
+        const body = el.closest(".ep-body");
+        body
+          .querySelectorAll(".tab")
+          .forEach((t) => t.classList.remove("active"));
+        body
+          .querySelectorAll(".tab-content")
+          .forEach((t) => t.classList.remove("active"));
+        el.classList.add("active");
+        document.getElementById(contentId).classList.add("active");
+      }
+    </script>
+  </body>
 </html>

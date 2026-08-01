@@ -17,6 +17,7 @@ return new class extends Migration
                   ->cascadeOnDelete();
 
             $table->date('tanggal');
+            $table->boolean('is_libur')->default(false);
             $table->decimal('pendapatan', 15, 2);
             $table->decimal('pengeluaran', 15, 2);
             $table->integer('jumlah_pembeli');

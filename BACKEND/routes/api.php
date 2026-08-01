@@ -6,6 +6,8 @@ use App\Http\Controllers\BisnisController;
 use App\Http\Controllers\DataHarianController;
 use App\Http\Controllers\MemberController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\RoadmapController;
+use App\Http\Controllers\WhatIfController;
 use Illuminate\Support\Facades\Route;
 
 // ─── Auth (public) ───────────────────────────────────────────
@@ -58,4 +60,18 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/analisa/generate', [AnalisisController::class, 'generate']);
     Route::get('/analisa/{id}', [AnalisisController::class, 'show']);
     Route::delete('/analisa/{id}', [AnalisisController::class, 'destroy']);
+
+
+    // Roadmap
+    Route::get('/roadmap', [RoadmapController::class, 'index']);
+    Route::post('/roadmap', [RoadmapController::class, 'store']);
+    Route::get('/roadmap/{id}', [RoadmapController::class, 'show']);
+    Route::put('/roadmap/{id}', [RoadmapController::class, 'update']);
+    Route::delete('/roadmap/{id}', [RoadmapController::class, 'destroy']);
+
+    // What If
+    Route::get('/what-if', [WhatIfController::class, 'index']);
+    Route::get('/what-if/kuota', [WhatIfController::class, 'kuota']);
+    Route::post('/what-if/predict', [WhatIfController::class, 'predict']);
+    Route::get('/what-if/{id}', [WhatIfController::class, 'show']);
 });
