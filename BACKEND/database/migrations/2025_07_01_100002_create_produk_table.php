@@ -19,6 +19,9 @@ return new class extends Migration
             $table->string('produk_nama');
             $table->decimal('produk_harga', 15, 2);
 
+                        $table->string('produk_image_url')->nullable()->after('produk_harga');
+
+
             $table->timestamps();
         });
     }

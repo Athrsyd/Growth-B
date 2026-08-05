@@ -3,6 +3,7 @@
 use App\Http\Controllers\AnalisisController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BisnisController;
+use App\Http\Controllers\ChartController;
 use App\Http\Controllers\DataHarianController;
 use App\Http\Controllers\MemberController;
 use App\Http\Controllers\ProductController;
@@ -74,4 +75,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/what-if/kuota', [WhatIfController::class, 'kuota']);
     Route::post('/what-if/predict', [WhatIfController::class, 'predict']);
     Route::get('/what-if/{id}', [WhatIfController::class, 'show']);
+
+
+    // Ambil semua chart sekaligus (rekomendasi untuk load dashboard)
+    Route::get('/chart/dashboard', [ChartController::class, 'dashboard']);
+
+    // Atau ambil per chart jika butuh refresh individual
+    Route::get('/chart/revenue',     [ChartController::class, 'revenue']);
+    Route::get('/chart/customer',    [ChartController::class, 'customer']);
+    Route::get('/chart/top-product', [ChartController::class, 'topProduct']);
 });
