@@ -30,7 +30,7 @@ const Auth = () => {
                   id='username'
                   type='text'
                   placeholder='Enter your username'
-                  autoComplete={false}
+                  autoComplete='false'
                 />
               </div>
 
@@ -43,7 +43,7 @@ const Auth = () => {
                 className='shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline'
                 id='Email'
                 type='Email'
-                autoComplete={false}
+                autoComplete='false'
                 placeholder='Enter your Email'
               />
             </div>
@@ -57,7 +57,7 @@ const Auth = () => {
                 id='password'
                 type={isPasswordVisible ? 'text' : 'password'}
                 placeholder='Enter your password'
-                autoComplete={false}
+                autoComplete='false'
 
               />
               <button

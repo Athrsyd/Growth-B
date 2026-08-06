@@ -9,6 +9,7 @@ import Simulation from '../pages/Simulation'
 import ProtectedRoute from './ProtectedRoute'
 import DesktopLayout from '../layout/DesktopLayout'
 import MobileLayout from '../layout/MobileLayout'
+import Profile from '../pages/Profile'
 
 
 const Router = () => {
@@ -30,6 +31,7 @@ const Router = () => {
         <Routes>
             <Route path="/auth" element={<Auth />} />
             <Route path="/bisnis-form" element={<BisnisForm />} />
+            <Route path={`/profile/:user_id`} element={<><Profile /></>} />
             {isMobile ? (
                 <Route element={<MobileLayout />}>
                     <Route path="/" element={<Home />} />

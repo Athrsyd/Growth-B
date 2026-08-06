@@ -1,6 +1,7 @@
 import React from 'react'
 import logo from '../assets/GrowthB_logo.svg'
 import { IoIosSettings } from "react-icons/io";
+import { Link } from 'react-router-dom';
 
 
 const TopBar = () => {
@@ -12,8 +13,10 @@ const TopBar = () => {
             </div>
             <div className="flex  flex-row items-center gap-2">
                 <IoIosSettings size={24} />
-                <div className="h-10 w-10 rounded-full bg-gray-300" >
-                </div>
+                <Link to="/profile" className="flex items-center justify-center">
+                    <div className="h-10 w-10 rounded-full bg-gray-300" >
+                    </div>
+                </Link>
 
             </div>
         </div>
