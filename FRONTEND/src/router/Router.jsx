@@ -27,27 +27,25 @@ const Router = () => {
     }, [])
 
     return (
-        isMobile ? (
-            <MobileLayout>
-                <Routes>
-                    <Route path="/" element={<Home />} />
-                    <Route path="/auth" element={<Auth />} />
-                    <Route path="/roadmap" element={<Roadmap />} />
-                    {/* <Route path="/bisnis-form" element={<ProtectedRoute><BisnisForm /></ProtectedRoute>} />
-                    <Route path="/member" element={<ProtectedRoute><Member /></ProtectedRoute>} />
-                    <Route path="/simulation" element={<ProtectedRoute><Simulation /></ProtectedRoute>} /> */}
-
-                </Routes>
-            </MobileLayout>
-        ) : (
-            <DesktopLayout>
-                <Routes>
+        <Routes>
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/bisnis-form" element={<BisnisForm />} />
+            {isMobile ? (
+                <Route element={<MobileLayout />}>
                     <Route path="/" element={<Home />} />
                     <Route path="/roadmap" element={<Roadmap />} />
-                    <Route path="/auth" element={<Auth />} />
-                </Routes>
-            </DesktopLayout>
-        )
+                    <Route path="/member" element={<Member />} />
+                    <Route path="/simulation" element={<Simulation />} />
+                </Route>
+            ) : (
+                <Route element={<DesktopLayout />}>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/roadmap" element={<Roadmap />} />
+                    <Route path="/member" element={<Member />} />
+                    <Route path="/simulation" element={<Simulation />} />
+                </Route>
+            )}
+        </Routes>
     )
 }
 

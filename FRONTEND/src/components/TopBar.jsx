@@ -5,7 +5,7 @@ import { IoIosSettings } from "react-icons/io";
 
 const TopBar = () => {
     return (
-        <div className='flex flex-row w-full items-center justify-between md:justify-end px-4 py-2 bg-white '>
+        <div className='flex flex-row w-full items-center justify-between md:justify-end px-4 py-2 bg-green-300'>
             <div className="flex w-2/10 md:hidden flex-row items-center gap-2">
                 <img src={logo} alt="Logo" className="h-8" />
                 <h1 className='font-bold text-md'>GrowthB</h1>

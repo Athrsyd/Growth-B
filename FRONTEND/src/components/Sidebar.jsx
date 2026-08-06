@@ -16,12 +16,13 @@ const navItems = [
 
 const Sidebar = () => {
     return (
-        <div className='w-64 bg-red-600 shadow-sm rounded-e-2xl px-4 py-8'>
+        <div className=' w-1/6 fixed h-screen bg-red-600 shadow-sm rounded-e-3xl px-4 py-8'>
             <div className="flex w-full flex-row items-center gap-2">
                 <img src={logo} alt="Logo" className="w-16" />
                 <h1 className='font-bold text-xl'>GrowthB</h1>
             </div>
-            <div className="flex flex-col justify-between items-center">
+
+            <div className="flex flex-col justify-between h-4/5 items-center">
 
                 <div className="mt-8 gap-2 flex flex-col w-full">
                     {navItems.map((item, index) => (
@@ -31,7 +32,14 @@ const Sidebar = () => {
                         </Link>
                     ))}
                 </div>
-
+                <div className="mt-8 gap-2 flex flex-col w-full">
+                    <Link to="/settings" className="flex items-center transition-all ease-in gap-2 p-2 hover:bg-red-700 rounded-md">
+                        <span>Settings</span>
+                    </Link>
+                    <Link to="/logout" className="flex items-center transition-all ease-in gap-2 p-2 hover:bg-red-700 rounded-md">
+                        <span>Logout</span>
+                    </Link>
+                </div>
             </div>
         </div>
     )
