@@ -10,6 +10,7 @@ import ProtectedRoute from './ProtectedRoute'
 import DesktopLayout from '../layout/DesktopLayout'
 import MobileLayout from '../layout/MobileLayout'
 import Profile from '../pages/Profile'
+import Analisis from '../pages/Analisis'
 
 
 const Router = () => {
@@ -38,6 +39,7 @@ const Router = () => {
                     <Route path="/roadmap" element={<Roadmap />} />
                     <Route path="/member" element={<Member />} />
                     <Route path="/simulation" element={<Simulation />} />
+                    <Route path='/analisis' element={<Analisis/>}/>
                 </Route>
             ) : (
                 <Route element={<DesktopLayout />}>
@@ -45,6 +47,7 @@ const Router = () => {
                     <Route path="/roadmap" element={<Roadmap />} />
                     <Route path="/member" element={<Member />} />
                     <Route path="/simulation" element={<Simulation />} />
+                    <Route path='/analisis' element={<Analisis/>}/>
                 </Route>
             )}
         </Routes>

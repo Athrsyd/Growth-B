@@ -1,9 +1,552 @@
-import React from 'react'
+import { useState } from "react";
 
-const Roadmap = () => {
+// ─── Data sementara ───────────────────────────────────────────
+const DUMMY_ROADMAP = [
+  {
+    id: 1,
+    judul: "Capai omset Rp 50 juta",
+    deskripsi: "Fokus naikkan penjualan produk unggulan dan tambah promosi di media sosial setiap minggu.",
+    target_metrik: "omset",
+    target_nilai: 50000000,
+    target_tanggal: "2024-09-30",
+    status: "aktif",
+  },
+  {
+    id: 2,
+    judul: "Tambah 100 member baru",
+    deskripsi: "Aktifkan QR code di meja dan kasir, dorong pelanggan untuk scan setiap kunjungan.",
+    target_metrik: "jumlah_pembeli",
+    target_nilai: 100,
+    target_tanggal: "2024-08-15",
+    status: "tercapai",
+  },
+  {
+    id: 3,
+    judul: "Kurangi biaya bahan baku 15%",
+    deskripsi: "Negosiasi ulang harga dengan supplier langganan dan cari alternatif supplier lokal.",
+    target_metrik: "pengeluaran",
+    target_nilai: null,
+    target_tanggal: "2024-10-31",
+    status: "aktif",
+  },
+  {
+    id: 4,
+    judul: "Rekrut 1 pegawai tambahan",
+    deskripsi: "Buka lowongan kasir paruh waktu untuk weekend agar bisa fokus ke pengelolaan bisnis.",
+    target_metrik: null,
+    target_nilai: null,
+    target_tanggal: "2024-11-01",
+    status: "dibatalkan",
+  },
+  {
+    id: 5,
+    judul: "Luncurkan menu paket hemat",
+    deskripsi: "Buat bundling Nasi Ayam + Es Teh dengan harga spesial untuk dorong nilai transaksi.",
+    target_metrik: "omset",
+    target_nilai: 60000000,
+    target_tanggal: "2024-12-31",
+    status: "aktif",
+  },
+];
+
+const METRIK_LABELS = {
+  omset: "Target Omset",
+  jumlah_pembeli: "Target Pembeli",
+  pengeluaran: "Target Pengeluaran",
+  laba: "Target Laba",
+};
+
+const STATUS_CONFIG = {
+  aktif: {
+    label: "Aktif",
+    dot: "bg-indigo-500",
+    dotRing: "ring-indigo-200",
+    badge: "bg-indigo-50 text-indigo-600 border-indigo-200",
+    border: "border-indigo-100",
+    icon: "⚡",
+  },
+  tercapai: {
+    label: "Tercapai",
+    dot: "bg-emerald-500",
+    dotRing: "ring-emerald-200",
+    badge: "bg-emerald-50 text-emerald-600 border-emerald-200",
+    border: "border-emerald-100",
+    icon: "✓",
+  },
+  dibatalkan: {
+    label: "Dibatalkan",
+    dot: "bg-gray-300",
+    dotRing: "ring-gray-100",
+    badge: "bg-gray-50 text-gray-400 border-gray-200",
+    border: "border-gray-100",
+    icon: "×",
+  },
+};
+
+// ─── Helpers ──────────────────────────────────────────────────
+const fmt     = v => v != null ? new Intl.NumberFormat("id-ID").format(v) : null;
+const fmtDate = s => s ? new Date(s).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }) : null;
+const daysLeft = s => s ? Math.ceil((new Date(s) - new Date()) / 86400000) : null;
+const sortByDate = list => [...list].sort((a, b) => {
+  if (!a.target_tanggal) return 1;
+  if (!b.target_tanggal) return -1;
+  return new Date(a.target_tanggal) - new Date(b.target_tanggal);
+});
+
+// ─── Add Modal ────────────────────────────────────────────────
+const EMPTY = { judul: "", deskripsi: "", target_metrik: "", target_nilai: "", target_tanggal: "" };
+
+function AddModal({ onClose, onSave }) {
+  const [form, setForm] = useState(EMPTY);
+  const [errors, setErrors] = useState({});
+
+  const set = (k, v) => {
+    setForm(f => ({ ...f, [k]: v }));
+    setErrors(e => { const n = { ...e }; delete n[k]; return n; });
+  };
+
+  const validate = () => {
+    const e = {};
+    if (!form.judul.trim()) e.judul = "Judul wajib diisi";
+    if (form.target_nilai && isNaN(Number(form.target_nilai))) e.target_nilai = "Harus angka";
+    setErrors(e);
+    return !Object.keys(e).length;
+  };
+
+  const submit = () => {
+    if (!validate()) return;
+    onSave({ ...form, id: Date.now(), status: "aktif", target_nilai: form.target_nilai ? Number(form.target_nilai) : null });
+    onClose();
+  };
+
   return (
-    <div>Roadmap</div>
-  )
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+      {/* Backdrop */}
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+
+      {/* Sheet */}
+      <div className="relative w-full sm:max-w-md bg-white sm:rounded-3xl rounded-t-3xl shadow-2xl overflow-hidden">
+        {/* Handle (mobile only) */}
+        <div className="sm:hidden flex justify-center pt-3 pb-1">
+          <div className="w-10 h-1 rounded-full bg-gray-200" />
+        </div>
+
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+          <div>
+            <h2 className="text-base font-bold text-gray-900">Tambah Goal</h2>
+            <p className="text-xs text-gray-400 mt-0.5">AI akan mengacu pada goal ini saat analisa</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-gray-200 transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Fields */}
+        <div className="px-5 py-4 space-y-4 max-h-[70vh] overflow-y-auto">
+          <div>
+            <label className="text-xs font-semibold text-gray-600 mb-1.5 block">
+              Judul Goal <span className="text-red-400">*</span>
+            </label>
+            <input
+              value={form.judul}
+              onChange={e => set("judul", e.target.value)}
+              placeholder="Contoh: Capai omset 50 juta bulan September"
+              className={`w-full px-3.5 py-2.5 rounded-xl border text-sm outline-none transition-all
+                ${errors.judul ? "border-red-300 bg-red-50" : "border-gray-200 bg-gray-50 focus:bg-white focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"}`}
+            />
+            {errors.judul && <p className="mt-1 text-xs text-red-500">{errors.judul}</p>}
+          </div>
+
+          <div>
+            <label className="text-xs font-semibold text-gray-600 mb-1.5 block">Deskripsi</label>
+            <textarea
+              value={form.deskripsi}
+              onChange={e => set("deskripsi", e.target.value)}
+              placeholder="Langkah-langkah atau catatan tambahan…"
+              rows={3}
+              className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 text-sm outline-none transition-all resize-none"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs font-semibold text-gray-600 mb-1.5 block">Metrik Target</label>
+              <select
+                value={form.target_metrik}
+                onChange={e => set("target_metrik", e.target.value)}
+                className="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-indigo-400 text-sm outline-none appearance-none"
+              >
+                <option value="">— Pilih —</option>
+                <option value="omset">Omset</option>
+                <option value="jumlah_pembeli">Jumlah Pembeli</option>
+                <option value="laba">Laba</option>
+                <option value="pengeluaran">Pengeluaran</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-gray-600 mb-1.5 block">Nilai Target</label>
+              <input
+                type="number"
+                value={form.target_nilai}
+                onChange={e => set("target_nilai", e.target.value)}
+                placeholder="50000000"
+                className={`w-full px-3.5 py-2.5 rounded-xl border text-sm outline-none transition-all
+                  ${errors.target_nilai ? "border-red-300 bg-red-50" : "border-gray-200 bg-gray-50 focus:bg-white focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"}`}
+              />
+              {errors.target_nilai && <p className="mt-1 text-xs text-red-500">{errors.target_nilai}</p>}
+            </div>
+          </div>
+
+          <div>
+            <label className="text-xs font-semibold text-gray-600 mb-1.5 block">Deadline</label>
+            <input
+              type="date"
+              value={form.target_tanggal}
+              onChange={e => set("target_tanggal", e.target.value)}
+              className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 text-sm outline-none transition-all"
+            />
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="px-5 py-4 border-t border-gray-100 flex gap-3">
+          <button onClick={onClose} className="flex-1 py-2.5 rounded-xl text-sm font-medium text-gray-500 border border-gray-200 hover:bg-gray-50 transition-all">
+            Batal
+          </button>
+          <button onClick={submit} className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700 active:scale-95 transition-all">
+            Simpan Goal
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
-export default Roadmap
+// ─── Card (shared) ────────────────────────────────────────────
+function CardContent({ item, onMarkDone }) {
+  const [confirming, setConfirming] = useState(false);
+  const cfg         = STATUS_CONFIG[item.status];
+  const days        = daysLeft(item.target_tanggal);
+  const isDone      = item.status === "tercapai";
+  const isCancelled = item.status === "dibatalkan";
+
+  return (
+    <div className={`bg-white rounded-2xl border p-4 shadow-sm shadow-gray-100/60 ${cfg.border} ${isCancelled ? "opacity-50" : ""}`}>
+      <div className="flex items-start justify-between gap-2 mb-2">
+        <h3 className={`text-sm font-bold leading-snug ${isCancelled ? "line-through text-gray-400" : "text-gray-800"}`}>
+          {item.judul}
+        </h3>
+        <span className={`flex-shrink-0 text-xs font-semibold px-2 py-0.5 rounded-full border ${cfg.badge}`}>
+          {cfg.icon} {cfg.label}
+        </span>
+      </div>
+
+      {item.deskripsi && (
+        <p className="text-xs text-gray-500 leading-relaxed mb-3">{item.deskripsi}</p>
+      )}
+
+      <div className="flex flex-wrap gap-2">
+        {item.target_metrik && item.target_nilai && (
+          <div className="flex items-center gap-1.5 bg-gray-50 rounded-lg px-2.5 py-1.5">
+            <span className="text-xs">🎯</span>
+            <div>
+              <p className="text-xs text-gray-400 leading-none">{METRIK_LABELS[item.target_metrik]}</p>
+              <p className="text-xs font-bold text-gray-700 mt-0.5">
+                {item.target_metrik === "jumlah_pembeli" ? fmt(item.target_nilai) + " orang" : "Rp " + fmt(item.target_nilai)}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {item.target_tanggal && (
+          <div className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 ${
+            isDone ? "bg-emerald-50" :
+            !isCancelled && days < 0 ? "bg-red-50" :
+            !isCancelled && days <= 7 ? "bg-amber-50" : "bg-gray-50"
+          }`}>
+            <span className="text-xs">📅</span>
+            <div>
+              <p className="text-xs text-gray-400 leading-none">Deadline</p>
+              <p className={`text-xs font-bold mt-0.5 ${
+                isDone ? "text-emerald-600" :
+                !isCancelled && days < 0 ? "text-red-600" :
+                !isCancelled && days <= 7 ? "text-amber-600" : "text-gray-700"
+              }`}>{fmtDate(item.target_tanggal)}</p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {!isDone && !isCancelled && days !== null && (
+        <div className={`mt-3 text-xs font-medium px-2.5 py-1.5 rounded-lg inline-block ${
+          days < 0   ? "bg-red-50 text-red-500" :
+          days === 0 ? "bg-amber-50 text-amber-600" :
+          days <= 7  ? "bg-amber-50 text-amber-600" :
+          "bg-indigo-50 text-indigo-500"
+        }`}>
+          {days < 0 ? `Lewat ${Math.abs(days)} hari` : days === 0 ? "Hari ini!" : days <= 7 ? `${days} hari lagi — segera!` : `${days} hari lagi`}
+        </div>
+      )}
+
+      {/* Tombol Tandai Tercapai — hanya untuk status aktif */}
+      {!isDone && !isCancelled && (
+        <div className="mt-4 pt-3 border-t border-gray-100">
+          {confirming ? (
+            // Konfirmasi sebelum tandai tercapai
+            <div className="flex items-center gap-2">
+              <p className="text-xs text-gray-500 flex-1">Tandai sebagai tercapai?</p>
+              <button
+                onClick={() => setConfirming(false)}
+                className="px-3 py-1.5 rounded-lg text-xs font-medium text-gray-500 border border-gray-200 hover:bg-gray-50 transition-all"
+              >
+                Batal
+              </button>
+              <button
+                onClick={() => { onMarkDone?.(item.id); setConfirming(false); }}
+                className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500 text-white hover:bg-emerald-600 active:scale-95 transition-all flex items-center gap-1"
+              >
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/>
+                </svg>
+                Ya, tercapai!
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setConfirming(true)}
+              className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold text-emerald-600 border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 active:scale-95 transition-all"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/>
+              </svg>
+              Tandai Tercapai
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Badge sudah tercapai */}
+      {isDone && (
+        <div className="mt-4 pt-3 border-t border-emerald-100 flex items-center gap-2 text-emerald-600">
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <span className="text-xs font-semibold">Goal ini sudah tercapai 🎉</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Mobile: linear timeline ──────────────────────────────────
+function MobileTimeline({ items, onMarkDone }) {
+  return (
+    <div>
+      {items.map((item, i) => {
+        const cfg    = STATUS_CONFIG[item.status];
+        const isLast = i === items.length - 1;
+        return (
+          <div key={item.id} className="flex gap-4">
+            <div className="flex flex-col items-center flex-shrink-0 pt-1">
+              <div className={`w-3 h-3 rounded-full ring-2 ${cfg.dot} ${cfg.dotRing} flex-shrink-0 z-10`} />
+              {!isLast && <div className="w-px flex-1 mt-1.5 bg-gray-200" />}
+            </div>
+            <div className="flex-1 mb-5">
+              <CardContent item={item} onMarkDone={onMarkDone} />
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ─── Desktop: zigzag timeline ─────────────────────────────────
+function DesktopTimeline({ items, onMarkDone }) {
+  return (
+    <div className="relative">
+      {/* Garis tengah */}
+      <div className="absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-px bg-gray-200" />
+
+      {items.map((item, i) => {
+        const isLeft = i % 2 === 0;
+        const cfg    = STATUS_CONFIG[item.status];
+
+        return (
+          <div key={item.id} className="relative flex items-start mb-10">
+            {isLeft ? (
+              <>
+                {/* Card kiri */}
+                <div className="w-[calc(50%-2rem)] pr-6">
+                  <CardContent item={item} onMarkDone={onMarkDone} />
+                </div>
+                {/* Dot + tanggal tengah */}
+                <div className="w-16 flex-shrink-0 flex flex-col items-center z-10 pt-4">
+                  <div className={`w-4 h-4 rounded-full ring-4 ring-white ${cfg.dot} shadow-sm`} />
+                  {item.target_tanggal && (
+                    <span className="mt-1.5 text-xs text-gray-400 font-medium text-center leading-tight whitespace-nowrap">
+                      {fmtDate(item.target_tanggal)}
+                    </span>
+                  )}
+                </div>
+                {/* Spacer kanan */}
+                <div className="w-[calc(50%-2rem)]" />
+              </>
+            ) : (
+              <>
+                {/* Spacer kiri */}
+                <div className="w-[calc(50%-2rem)]" />
+                {/* Dot + tanggal tengah */}
+                <div className="w-16 flex-shrink-0 flex flex-col items-center z-10 pt-4">
+                  <div className={`w-4 h-4 rounded-full ring-4 ring-white ${cfg.dot} shadow-sm`} />
+                  {item.target_tanggal && (
+                    <span className="mt-1.5 text-xs text-gray-400 font-medium text-center leading-tight whitespace-nowrap">
+                      {fmtDate(item.target_tanggal)}
+                    </span>
+                  )}
+                </div>
+                {/* Card kanan */}
+                <div className="w-[calc(50%-2rem)] pl-6">
+                  <CardContent item={item} onMarkDone={onMarkDone} />
+                </div>
+              </>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ─── Empty State ──────────────────────────────────────────────
+function EmptyState({ onAdd }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-24 px-6 text-center">
+      <div className="w-16 h-16 rounded-2xl bg-indigo-50 flex items-center justify-center text-3xl mb-4">🗺️</div>
+      <h3 className="text-base font-bold text-gray-800 mb-1">Belum ada roadmap</h3>
+      <p className="text-sm text-gray-400 max-w-xs mb-6">
+        Buat goal pertamamu. AI akan menggunakannya sebagai acuan saat menganalisa bisnismu.
+      </p>
+      <button
+        onClick={onAdd}
+        className="px-5 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 active:scale-95 transition-all"
+      >
+        + Buat Goal Pertama
+      </button>
+    </div>
+  );
+}
+
+// ─── Main ─────────────────────────────────────────────────────
+export default function Roadmap() {
+  const [roadmaps, setRoadmaps] = useState(DUMMY_ROADMAP);
+  const [showModal, setShowModal] = useState(false);
+  const [filter, setFilter]      = useState("semua");
+
+  const handleMarkDone = (id) => {
+    setRoadmaps(prev => prev.map(r => r.id === id ? { ...r, status: "tercapai" } : r));
+  };
+
+  const sorted   = sortByDate(roadmaps);
+  const filtered = filter === "semua" ? sorted : sorted.filter(r => r.status === filter);
+  const counts   = {
+    semua:      roadmaps.length,
+    aktif:      roadmaps.filter(r => r.status === "aktif").length,
+    tercapai:   roadmaps.filter(r => r.status === "tercapai").length,
+    dibatalkan: roadmaps.filter(r => r.status === "dibatalkan").length,
+  };
+
+  const FILTERS = [
+    { key: "semua",      label: "Semua" },
+    { key: "aktif",      label: "Aktif" },
+    { key: "tercapai",   label: "Tercapai" },
+    { key: "dibatalkan", label: "Dibatalkan" },
+  ];
+
+  return (
+    <>
+      {/* ── Header ── */}
+      <div className=" top-0 z-30 bg-white border-b border-gray-100 px-4 lg:px-0 pt-4 pb-0">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <p className="text-xs font-semibold text-indigo-500 uppercase tracking-widest mb-0.5">Roadmap</p>
+            <h1 className="text-xl font-bold text-gray-900">Goal Bisnis</h1>
+          </div>
+          <button
+            onClick={() => setShowModal(true)}
+            className="flex items-center gap-1.5 bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-sm shadow-indigo-200 hover:bg-indigo-700 active:scale-95 transition-all"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+            Tambah
+          </button>
+        </div>
+
+        {/* Filter tabs */}
+        <div className="flex gap-1 overflow-x-auto pb-3 scrollbar-none -mx-1 px-1">
+          {FILTERS.map(f => (
+            <button
+              key={f.key}
+              onClick={() => setFilter(f.key)}
+              className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all border ${
+                filter === f.key
+                  ? "bg-indigo-600 text-white border-indigo-600"
+                  : "bg-white text-gray-500 border-gray-200 hover:border-gray-300"
+              }`}
+            >
+              {f.label}
+              <span className={`text-xs px-1.5 py-0.5 rounded-full font-bold ${
+                filter === f.key ? "bg-white/20 text-white" : "bg-gray-100 text-gray-400"
+              }`}>
+                {counts[f.key]}
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Body ── */}
+      <div className="pt-6 pb-6 px-4 lg:px-0">
+        {filtered.length === 0 ? (
+          <EmptyState onAdd={() => setShowModal(true)} />
+        ) : (
+          <>
+            {filter === "semua" && counts.aktif > 0 && (
+              <div className="flex items-center gap-2 bg-indigo-50 rounded-xl px-3.5 py-2.5 mb-6 border border-indigo-100">
+                <span className="text-sm">⚡</span>
+                <p className="text-xs text-indigo-700 font-medium">
+                  <span className="font-bold">{counts.aktif} goal aktif</span> — AI mengacu pada goal ini saat analisa.
+                </p>
+              </div>
+            )}
+
+            {/* Mobile */}
+            <div className="lg:hidden">
+              <MobileTimeline items={filtered} onMarkDone={handleMarkDone} />
+            </div>
+
+            {/* Desktop */}
+            <div className="hidden lg:block">
+              <DesktopTimeline items={filtered} onMarkDone={handleMarkDone} />
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Modal */}
+      {showModal && (
+        <AddModal
+          onClose={() => setShowModal(false)}
+          onSave={item => setRoadmaps(p => [...p, item])}
+        />
+      )}
+    </>
+  );
+}

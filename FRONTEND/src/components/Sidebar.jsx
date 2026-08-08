@@ -36,8 +36,8 @@ const Sidebar = () => {
                     <Link to="/settings" className="flex items-center transition-all ease-in gap-2 p-2 hover:bg-red-700 rounded-md">
                         <span>Settings</span>
                     </Link>
-                    <Link to="/logout" className="flex items-center transition-all ease-in gap-2 p-2 hover:bg-red-700 rounded-md">
-                        <span>Logout</span>
+                    <Link to="/profile" className="flex items-center transition-all ease-in gap-2 p-2 hover:bg-red-700 rounded-md">
+                        <span>Profile</span>
                     </Link>
                 </div>
             </div>
