@@ -32,9 +32,9 @@ const Router = () => {
         <Routes>
             <Route path="/auth" element={<Auth />} />
             <Route path="/bisnis-form" element={<BisnisForm />} />
-            <Route path={`/profile/:user_id`} element={<><Profile /></>} />
             {isMobile ? (
                 <Route element={<MobileLayout />}>
+                    <Route path={`/profile/:user_id`} element={<><Profile /></>} />
                     <Route path="/" element={<Home />} />
                     <Route path="/roadmap" element={<Roadmap />} />
                     <Route path="/member" element={<Member />} />
@@ -43,6 +43,7 @@ const Router = () => {
                 </Route>
             ) : (
                 <Route element={<DesktopLayout />}>
+                    <Route path={`/profile/:user_id`} element={<><Profile /></>} />
                     <Route path="/" element={<Home />} />
                     <Route path="/roadmap" element={<Roadmap />} />
                     <Route path="/member" element={<Member />} />

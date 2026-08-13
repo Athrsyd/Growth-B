@@ -13,7 +13,7 @@ const TopBar = () => {
             </div>
             <div className="flex  flex-row items-center gap-2">
                 <IoIosSettings size={24} />
-                <Link to="/profile" className="flex items-center justify-center">
+                <Link to="/profile/1" className="flex items-center justify-center">
                     <div className="h-10 w-10 rounded-full bg-gray-300" >
                     </div>
                 </Link>
