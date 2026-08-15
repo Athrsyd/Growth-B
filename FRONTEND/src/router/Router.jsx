@@ -11,6 +11,7 @@ import DesktopLayout from '../layout/DesktopLayout'
 import MobileLayout from '../layout/MobileLayout'
 import Profile from '../pages/Profile'
 import Analisis from '../pages/Analisis'
+import FormMember from '../pages/FormMember'
 
 
 const Router = () => {
@@ -31,6 +32,7 @@ const Router = () => {
     return (
         <Routes>
             <Route path="/auth" element={<Auth />} />
+            <Route path="/input-member/:token" element={<FormMember />} />
             <Route path="/bisnis-form" element={<BisnisForm />} />
             {isMobile ? (
                 <Route element={<MobileLayout />}>
@@ -39,7 +41,7 @@ const Router = () => {
                     <Route path="/roadmap" element={<Roadmap />} />
                     <Route path="/member" element={<Member />} />
                     <Route path="/simulation" element={<Simulation />} />
-                    <Route path='/analisis' element={<Analisis/>}/>
+                    <Route path='/analisis' element={<Analisis />} />
                 </Route>
             ) : (
                 <Route element={<DesktopLayout />}>
@@ -48,7 +50,7 @@ const Router = () => {
                     <Route path="/roadmap" element={<Roadmap />} />
                     <Route path="/member" element={<Member />} />
                     <Route path="/simulation" element={<Simulation />} />
-                    <Route path='/analisis' element={<Analisis/>}/>
+                    <Route path='/analisis' element={<Analisis />} />
                 </Route>
             )}
         </Routes>

@@ -1,32 +1,76 @@
-import React from 'react'
-import {Link} from 'react-router-dom'
-import { IoMdHome,IoIosAnalytics  } from "react-icons/io";
-import { LuGoal } from "react-icons/lu";
-import { RiVipCrown2Fill } from "react-icons/ri";
-import { FaRegQuestionCircle } from "react-icons/fa";
+import { NavLink } from 'react-router-dom'
+import { IoHomeOutline, IoHome, IoPeopleOutline, IoPeople, IoMapOutline, IoMap } from 'react-icons/io5'
+import { LuUser, LuPencilLine } from 'react-icons/lu'
+import { FaQuestion } from "react-icons/fa";
 
 
-const BottomBar = () => {
+const TABS = [
+    { path: '/', label: 'Beranda', Icon: IoHomeOutline, IconActive: IoHome, end: true },
+    { path: '/analisis', label: 'Input', Icon: LuPencilLine, IconActive: LuPencilLine, end: false },
+    { path: '/roadmap', label: 'Roadmap', Icon: IoMapOutline, IconActive: IoMap, end: false },
+    { path: '/member', label: 'Member', Icon: IoPeopleOutline, IconActive: IoPeople, end: false },
+    { path: '/simulation', label: 'Simulation', Icon: FaQuestion, IconActive: FaQuestion, end: false },
+]
 
-    const navItems = [
-        { name: 'Home', path: '/', icon: <IoMdHome size={24} /> },
-        { name: 'Roadmap', path: '/roadmap', icon: <LuGoal size={24} /> },
-        { name: 'Analisis', path: '/analisis', icon: <IoIosAnalytics size={24} /> },
-        { name: 'Member', path: '/member', icon: <RiVipCrown2Fill size={24} /> },
-        { name: 'Simulation', path: '/simulation', icon: <FaRegQuestionCircle size={24} /> },
-    ];
-  return (
-    <div className="fixed bottom-0 left-0 right-0">
-        <div className="bg-white shadow-md flex flex-row justify-between items-center px-4 py-2">
-            {navItems.map((item) => (
-                <Link to={item.path} key={item.name} className="flex flex-col items-center">
-                    {item.icon}
-                    <span className="text-xs mt-1">{item.name}</span>
-                </Link>
+export default function BottomBar() {
+    return (
+        <nav style={{
+            position: 'fixed',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: 64,
+            background: 'var(--color-surface)',
+            borderTop: '1px solid var(--color-border-light)',
+            display: 'flex',
+            alignItems: 'center',
+            zIndex: 50,
+            paddingBottom: 'env(safe-area-inset-bottom)',
+        }}>
+            {TABS.map((tab) => (
+                <NavLink
+                    key={tab.path}
+                    to={tab.path}
+                    end={tab.end}
+                    style={{ flex: 1, textDecoration: 'none' }}
+                >
+                    {({ isActive }) => {
+                        const IconComp = isActive ? tab.IconActive : tab.Icon
+                        return (
+                            <div style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: 3,
+                                padding: '6px 4px',
+                            }}>
+                                <div style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    width: isActive ? 44 : 28,
+                                    height: 28,
+                                    borderRadius: 'var(--radius-pill)',
+                                    background: isActive ? 'var(--color-primary-soft)' : 'transparent',
+                                    transition: 'all var(--transition)',
+                                }}>
+                                    <IconComp size={20} style={{ color: isActive ? 'var(--color-primary-dark)' : 'var(--color-text-muted)' }} />
+                                </div>
+                                <span style={{
+                                    fontSize: 10,
+                                    fontWeight: isActive ? 600 : 400,
+                                    color: isActive ? 'var(--color-primary-dark)' : 'var(--color-text-muted)',
+                                    transition: 'color var(--transition)',
+                                    lineHeight: 1,
+                                }}>
+                                    {tab.label}
+                                </span>
+                            </div>
+                        )
+                    }}
+                </NavLink>
             ))}
-        </div>
-    </div>
-  )
+        </nav>
+    )
 }
-
-export default BottomBar

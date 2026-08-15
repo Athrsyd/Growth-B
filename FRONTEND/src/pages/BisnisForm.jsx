@@ -1,5 +1,14 @@
 import { useState, useRef } from "react";
 import axios from "axios";
+import { LuTrendingUp, LuTrendingDown, LuTrophy, LuUsers, LuCheck } from "react-icons/lu";
+
+function GoalIcon({ name }) {
+  if (name === "trending_up")   return <LuTrendingUp  size={18} />;
+  if (name === "trending_down") return <LuTrendingDown size={18} />;
+  if (name === "trophy")        return <LuTrophy       size={18} />;
+  if (name === "users")         return <LuUsers        size={18} />;
+  return null;
+}
 
 // ─── Konstanta ────────────────────────────────────────────────
 const API = import.meta.env.VITE_API_URL ?? "http://localhost:8000/api";
@@ -36,8 +45,8 @@ function StepIndicator({ current, steps }) {
               shrink w-7 h-7 rounded-full
               flex items-center justify-center
               text-xs font-bold transition-all duration-300
-              ${i < current  ? "bg-emerald-500 text-white shadow-sm shadow-emerald-200" : ""}
-              ${i === current ? "bg-indigo-600 text-white ring-4 ring-indigo-100" : ""}
+              ${i < current  ? "bg-[#16A34A] text-white shadow-sm shadow-[#BBF7D0]" : ""}
+              ${i === current ? "bg-[#22C55E] text-white ring-4 ring-[#DCFCE7]" : ""}
               ${i > current  ? "bg-gray-100 text-gray-400" : ""}
             `}>
               {i < current
@@ -48,7 +57,7 @@ function StepIndicator({ current, steps }) {
  
             {/* Connector */}
             {i < steps.length - 1 && (
-              <div className={`flex-1 h-0.5 mx-1 transition-all duration-500 ${i < current ? "bg-emerald-400" : "bg-gray-200"}`} />
+              <div className={`flex-1 h-0.5 mx-1 transition-all duration-500 ${i < current ? "bg-[#4ADE80]" : "bg-gray-200"}`} />
             )}
           </div>
         ))}
@@ -56,7 +65,7 @@ function StepIndicator({ current, steps }) {
  
       {/* Row 2 — Labels (grid agar tepat di bawah dot) */}
       <div
-        className="mt-2 grid w-full gap-2"
+        className="mt-2 grid w-full gap-20"
         style={{ gridTemplateColumns: `repeat(${steps.length}, 1fr)` }}
       >
         {steps.map((label, i) => (
@@ -65,8 +74,8 @@ function StepIndicator({ current, steps }) {
             className={`
               block text-center text-xs font-medium leading-tight px-0.5 truncate
               transition-colors duration-200
-              ${i < current  ? "text-emerald-500" : ""}
-              ${i === current ? "text-indigo-600" : ""}
+              ${i < current  ? "text-[#22C55E]" : ""}
+              ${i === current ? "text-[#15803D]" : ""}
               ${i > current  ? "text-gray-300 hidden sm:block" : ""}
             `}
           >
@@ -96,7 +105,7 @@ function Input({ error, ...props }) {
     <input
       {...props}
       className={`w-full px-3.5 py-2.5 rounded-xl border text-sm transition-all outline-none
-        ${error ? "border-red-300 bg-red-50 focus:ring-2 focus:ring-red-200" : "border-gray-200 bg-gray-50 focus:bg-white focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"}`}
+        ${error ? "border-red-300 bg-red-50 focus:ring-2 focus:ring-red-200" : "border-gray-200 bg-gray-50 focus:bg-white focus:border-[#22C55E] focus:ring-2 focus:ring-[#DCFCE7]"}`}
     />
   );
 }
@@ -119,7 +128,7 @@ function NavButtons({ onBack, onNext, loading, nextLabel = "Lanjut", showBack = 
         type="button"
         onClick={onNext}
         disabled={loading}
-        className="px-6 py-2.5 rounded-xl text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700 active:scale-95 transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
+        className="px-6 py-2.5 rounded-xl text-sm font-semibold bg-[#22C55E] text-white hover:bg-[#15803D] active:scale-95 transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
       >
         {loading && (
           <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -156,11 +165,11 @@ function StepInfoBisnis({ data, onChange, errors }) {
               onClick={() => onChange("bisnis_tipe", tipe)}
               className={`py-3 rounded-xl border-2 text-sm font-medium capitalize transition-all ${
                 data.bisnis_tipe === tipe
-                  ? "border-indigo-500 bg-indigo-50 text-indigo-700"
+                  ? "border-[#22C55E] bg-[#F0FDF4] text-[#15803D]"
                   : "border-gray-200 text-gray-500 hover:border-gray-300"
               }`}
             >
-              {tipe === "barang" ? "🛍️ Barang" : "🛠️ Jasa"}
+              {tipe === "barang" ? "Barang" : "Jasa"}
             </button>
           ))}
         </div>
@@ -216,7 +225,7 @@ function StepJamTim({ data, onChange, errors }) {
           <button
             type="button"
             onClick={() => onChange("jumlah_pegawai", Math.max(1, (data.jumlah_pegawai || 1) - 1))}
-            className="w-10 h-10 rounded-xl border-2 border-gray-200 text-gray-600 text-lg font-bold hover:border-indigo-300 hover:text-indigo-600 transition-all shrink-0"
+            className="w-10 h-10 rounded-xl border-2 border-gray-200 text-gray-600 text-lg font-bold hover:border-[#86EFAC] hover:text-[#15803D] transition-all shrink-0"
           >
             −
           </button>
@@ -226,7 +235,7 @@ function StepJamTim({ data, onChange, errors }) {
           <button
             type="button"
             onClick={() => onChange("jumlah_pegawai", (data.jumlah_pegawai || 1) + 1)}
-            className="w-10 h-10 rounded-xl border-2 border-gray-200 text-gray-600 text-lg font-bold hover:border-indigo-300 hover:text-indigo-600 transition-all shrink-0"
+            className="w-10 h-10 rounded-xl border-2 border-gray-200 text-gray-600 text-lg font-bold hover:border-[#86EFAC] hover:text-[#15803D] transition-all shrink-0"
           >
             +
           </button>
@@ -246,10 +255,10 @@ function StepTarget({ data, onChange, errors }) {
   };
 
   const icons = {
-    "menaikkan omset": "📈",
-    "menambah pelanggan tetap": "👥",
-    "mengurangi biaya operasional": "💰",
-    "Meningkatkan keuntungan": "🏆",
+    "menaikkan omset": "trending_up",
+    "menambah pelanggan tetap": "users",
+    "mengurangi biaya operasional": "trending_down",
+    "Meningkatkan keuntungan": "trophy",
   };
 
   return (
@@ -266,16 +275,16 @@ function StepTarget({ data, onChange, errors }) {
               onClick={() => toggle(tujuan)}
               className={`flex items-center gap-3 p-4 rounded-xl border-2 text-left transition-all ${
                 selected
-                  ? "border-indigo-500 bg-indigo-50"
+                  ? "border-[#22C55E] bg-[#F0FDF4]"
                   : "border-gray-200 hover:border-gray-300 bg-white"
               }`}
             >
-              <span className="text-xl">{icons[tujuan]}</span>
-              <span className={`text-sm font-medium capitalize ${selected ? "text-indigo-700" : "text-gray-600"}`}>
+              <GoalIcon name={icons[tujuan]} />
+              <span className={`text-sm font-medium capitalize ${selected ? "text-[#15803D]" : "text-gray-600"}`}>
                 {tujuan}
               </span>
               {selected && (
-                <div className="ml-auto w-5 h-5 rounded-full bg-indigo-500 flex items-center justify-center shrink-0">
+                <div className="ml-auto w-5 h-5 rounded-full bg-[#F0FDF4]0 flex items-center justify-center shrink-0">
                   <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                   </svg>
@@ -339,7 +348,7 @@ function StepProduk({ produk, onAdd, onRemove, onChange, bisnisId, errors }) {
           {/* Gambar produk */}
           <div className="flex items-center gap-3">
             <div
-              className="w-16 h-16 rounded-xl border-2 border-dashed border-gray-300 bg-white flex items-center justify-center cursor-pointer hover:border-indigo-400 transition-all shrink-0 overflow-hidden"
+              className="w-16 h-16 rounded-xl border-2 border-dashed border-gray-300 bg-white flex items-center justify-center cursor-pointer hover:border-[#22C55E] transition-all shrink-0 overflow-hidden"
               onClick={() => fileRefs.current[idx]?.click()}
             >
               {previews[idx] ? (
@@ -357,7 +366,7 @@ function StepProduk({ produk, onAdd, onRemove, onChange, bisnisId, errors }) {
                 <button
                   type="button"
                   onClick={() => fileRefs.current[idx]?.click()}
-                  className="text-xs text-indigo-600 font-medium hover:text-indigo-800"
+                  className="text-xs text-[#15803D] font-medium hover:text-[#14532D]"
                 >
                   {previews[idx] ? "Ganti" : "Upload"}
                 </button>
@@ -420,7 +429,7 @@ function StepProduk({ produk, onAdd, onRemove, onChange, bisnisId, errors }) {
       <button
         type="button"
         onClick={onAdd}
-        className="w-full py-3 rounded-xl border-2 border-dashed border-indigo-300 text-indigo-600 text-sm font-medium hover:bg-indigo-50 hover:border-indigo-400 transition-all flex items-center justify-center gap-2"
+        className="w-full py-3 rounded-xl border-2 border-dashed border-[#86EFAC] text-[#15803D] text-sm font-medium hover:bg-[#F0FDF4] hover:border-[#22C55E] transition-all flex items-center justify-center gap-2"
       >
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -435,8 +444,8 @@ function StepProduk({ produk, onAdd, onRemove, onChange, bisnisId, errors }) {
 function StepSelesai({ bisnis }) {
   return (
     <div className="text-center py-6 space-y-4">
-      <div className="w-20 h-20 mx-auto rounded-full bg-emerald-100 flex items-center justify-center">
-        <svg className="w-10 h-10 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <div className="w-20 h-20 mx-auto rounded-full bg-[#DCFCE7] flex items-center justify-center">
+        <svg className="w-10 h-10 text-[#22C55E]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
         </svg>
       </div>
@@ -446,18 +455,18 @@ function StepSelesai({ bisnis }) {
           <span className="font-medium text-gray-700">{bisnis?.bisnis_nama}</span> sudah siap digunakan.
         </p>
       </div>
-      <div className="bg-indigo-50 rounded-2xl p-4 text-left space-y-2">
-        <p className="text-xs font-semibold text-indigo-600 uppercase tracking-wide">Langkah selanjutnya</p>
+      <div className="bg-[#F0FDF4] rounded-2xl p-4 text-left space-y-2">
+        <p className="text-xs font-semibold text-[#15803D] uppercase tracking-wide">Langkah selanjutnya</p>
         {[
           "Input data harian pertamamu",
           "Scan QR code untuk mulai kumpulkan member",
           "Pantau dashboard setiap hari",
         ].map((step, i) => (
           <div key={i} className="flex items-start gap-2">
-            <span className="w-5 h-5 rounded-full bg-indigo-200 text-indigo-700 text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
+            <span className="w-5 h-5 rounded-full bg-[#BBF7D0] text-[#15803D] text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
               {i + 1}
             </span>
-            <span className="text-sm text-indigo-800">{step}</span>
+            <span className="text-sm text-[#14532D]">{step}</span>
           </div>
         ))}
       </div>
@@ -602,12 +611,12 @@ export default function BisnisForm({ onFinish }) {
   ];
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-50 via-indigo-50/30 to-white flex items-center justify-center p-4">
-      <div className="w-full max-w-lg">
+    <div className="min-h-screen bg-linear-to-br from-slate-50 via-[#F0FDF4]/30 to-white flex items-center justify-center p-4">
+      <div className="w-full max-w-xl">
         {/* Header */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 bg-white rounded-full px-4 py-1.5 border border-gray-200 shadow-sm mb-4">
-            <div className="w-2 h-2 rounded-full bg-indigo-500" />
+            <div className="w-2 h-2 rounded-full bg-[#F0FDF4]0" />
             <span className="text-xs font-semibold text-gray-600 tracking-wide">GROWTHB</span>
           </div>
           <h1 className="text-2xl font-bold text-gray-900">{stepTitles[step].title}</h1>
@@ -620,7 +629,7 @@ export default function BisnisForm({ onFinish }) {
         <StepIndicator current={step} steps={STEPS} />
 
         {/* Card */}
-        <div className="bg-white rounded-3xl shadow-xl shadow-indigo-100/40 border border-gray-100 p-6 sm:p-8">
+        <div className="bg-white rounded-3xl shadow-xl shadow-[#DCFCE7]/40 border border-gray-100 p-6 sm:p-8">
           {errors._global && (
             <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-600">
               {errors._global}
@@ -654,7 +663,7 @@ export default function BisnisForm({ onFinish }) {
               <button
                 type="button"
                 onClick={() => onFinish?.(bisnisResult)}
-                className="w-full py-3 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 active:scale-95 transition-all"
+                className="w-full py-3 rounded-xl bg-[#22C55E] text-white text-sm font-semibold hover:bg-[#15803D] active:scale-95 transition-all"
               >
                 Masuk ke Dashboard →
               </button>

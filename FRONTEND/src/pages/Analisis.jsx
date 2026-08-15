@@ -1,4 +1,9 @@
 import { useState } from "react";
+import { LuTrophy, LuTriangleAlert , LuZap, LuTarget,
+   LuSparkles, LuMap, LuChartColumnBig , LuClipboardList, 
+   LuCheck, LuPencilLine } from "react-icons/lu";
+   import { SlCalender } from "react-icons/sl";
+
 
 // ─── Dummy data ───────────────────────────────────────────────
 const DUMMY_PRODUK = [
@@ -85,7 +90,7 @@ function Kalender({ dataHarian, siklusInfo, onPilihTanggal }) {
       {/* Nama hari */}
       <div className="grid grid-cols-7 px-2 pt-2">
         {HARI.map(h => (
-          <div key={h} className="text-center text-xs font-semibold text-gray-400 py-1">{h}</div>
+          <div key={h} className="text-center py-2 text-xs font-semibold text-gray-400">{h}</div>
         ))}
       </div>
 
@@ -105,21 +110,21 @@ function Kalender({ dataHarian, siklusInfo, onPilihTanggal }) {
               key={ymd}
               onClick={() => !isFuture && onPilihTanggal(ymd, dataHari)}
               disabled={isFuture}
-              className={`relative flex flex-col items-center justify-center rounded-xl py-1.5 transition-all
+              className={`relative flex flex-col items-center justify-center rounded-xl py-3 transition-all
                 ${isFuture ? "opacity-30 cursor-not-allowed" : "hover:bg-gray-50 cursor-pointer active:scale-95"}
-                ${isToday ? "ring-2 ring-indigo-400 ring-offset-1" : ""}
+                ${isToday ? "ring-2 ring-[#22C55E] ring-offset-1" : ""}
               `}
             >
               <span className={`text-xs font-bold leading-none
-                ${isInput  ? "text-white" : isToday ? "text-indigo-600" : isSiklus ? "text-indigo-500" : "text-gray-700"}
+                ${isInput  ? "text-white" : isToday ? "text-[#15803D]" : isSiklus ? "text-[#22C55E]" : "text-gray-700"}
               `}>
                 {/* Background dot untuk hari yang sudah diinput */}
                 {isInput && (
-                  <span className={`absolute inset-1 rounded-lg ${dataHari && (dataHari.pendapatan - dataHari.pengeluaran) >= 0 ? "bg-emerald-500" : "bg-red-400"}`} />
+                  <span className={`absolute inset-1 rounded-lg ${dataHari && (dataHari.pendapatan - dataHari.pengeluaran) >= 0 ? "bg-[#16A34A]" : "bg-red-400"}`} />
                 )}
                 {/* Background samar untuk range siklus */}
                 {!isInput && isSiklus && (
-                  <span className="absolute inset-1 rounded-lg bg-indigo-50" />
+                  <span className="absolute inset-1 rounded-lg bg-[#F0FDF4]" />
                 )}
                 <span className="relative z-10">{day}</span>
               </span>
@@ -136,9 +141,9 @@ function Kalender({ dataHarian, siklusInfo, onPilihTanggal }) {
       {/* Legend */}
       <div className="flex items-center justify-center gap-4 px-4 py-2.5 border-t border-gray-100 bg-gray-50">
         {[
-          { color: "bg-emerald-500", label: "Laba positif" },
+          { color: "bg-[#16A34A]", label: "Laba positif" },
           { color: "bg-red-400",     label: "Laba negatif" },
-          { color: "bg-indigo-50 border border-indigo-200", label: "Range siklus" },
+          { color: "bg-[#F0FDF4] border border-[#BBF7D0]", label: "Range siklus" },
         ].map(l => (
           <div key={l.label} className="flex items-center gap-1.5">
             <div className={`w-3 h-3 rounded-sm ${l.color}`} />
@@ -183,28 +188,28 @@ function DetailHariCard({ tanggal, data, onInput, onClose }) {
           </div>
 
           {/* Laba */}
-          <div className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold ${laba >= 0 ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-600"}`}>
+          <div className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold ${laba >= 0 ? "bg-[#F0FDF4] text-[#15803D]" : "bg-red-50 text-red-600"}`}>
             <span className="text-xs font-medium">Laba Bersih</span>
             <span>{laba >= 0 ? "+" : ""}Rp {fmt(laba)}</span>
           </div>
 
           {/* Produk terlaris */}
           {data.produk_terlaris && (
-            <div className="flex items-center gap-2 text-xs text-indigo-700 bg-indigo-50 rounded-xl px-3 py-2">
-              <span>🏆</span><span>Terlaris: <strong>{data.produk_terlaris}</strong></span>
+            <div className="flex items-center gap-2 text-xs text-[#15803D] bg-[#F0FDF4] rounded-xl px-3 py-2">
+              <LuTrophy size={14} className="shrink-0" /><span>Terlaris: <strong>{data.produk_terlaris}</strong></span>
             </div>
           )}
 
           {/* Kendala */}
           {data.kendala && (
             <div className="flex items-start gap-2 text-xs text-amber-700 bg-amber-50 rounded-xl px-3 py-2">
-              <span className="flex-shrink-0">⚠️</span><span>{data.kendala}</span>
+              <LuTriangleAlert  size={14} className="shrink-0" /><span>{data.kendala}</span>
             </div>
           )}
 
           {/* Edit button */}
           <button onClick={() => onInput(tanggal)}
-            className="w-full py-2.5 rounded-xl border border-indigo-200 text-indigo-600 text-xs font-semibold hover:bg-indigo-50 transition-all flex items-center justify-center gap-1.5">
+            className="w-full py-2.5 rounded-xl border border-[#BBF7D0] text-[#15803D] text-xs font-semibold hover:bg-[#F0FDF4] transition-all flex items-center justify-center gap-1.5">
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
             Edit Data Ini
           </button>
@@ -215,7 +220,7 @@ function DetailHariCard({ tanggal, data, onInput, onClose }) {
           <p className="text-sm font-semibold text-gray-700">Belum ada data</p>
           <p className="text-xs text-gray-400">Klik tombol di bawah untuk mengisi data hari ini</p>
           <button onClick={() => onInput(tanggal)}
-            className="w-full py-2.5 rounded-xl bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-700 active:scale-95 transition-all flex items-center justify-center gap-1.5">
+            className="w-full py-2.5 rounded-xl bg-[#22C55E] text-white text-xs font-semibold hover:bg-[#15803D] active:scale-95 transition-all flex items-center justify-center gap-1.5">
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"/></svg>
             Input Data Hari Ini
           </button>
@@ -260,16 +265,16 @@ function InputHarianModal({ tanggalAwal, onClose, onSave }) {
 
   const totalPenjualan = form.penjualan.reduce((sum,p) => sum + (parseInt(p.qty)||0)*p.produk_harga, 0);
 
-  const inputCls = (err) => `w-full px-3.5 py-2.5 rounded-xl border text-sm outline-none transition-all ${err ? "border-red-300 bg-red-50" : "border-gray-200 bg-gray-50 focus:bg-white focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"}`;
+  const inputCls = (err) => `w-full px-3.5 py-2.5 rounded-xl border text-sm outline-none transition-all ${err ? "border-red-300 bg-red-50" : "border-gray-200 bg-gray-50 focus:bg-white focus:border-[#22C55E] focus:ring-2 focus:ring-[#DCFCE7]"}`;
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
       <div className="relative w-full sm:max-w-lg bg-white sm:rounded-3xl rounded-t-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col">
-        <div className="sm:hidden flex justify-center pt-3 pb-1 flex-shrink-0"><div className="w-10 h-1 rounded-full bg-gray-200"/></div>
+        <div className="sm:hidden flex justify-center pt-3 pb-1 shrink-0"><div className="w-10 h-1 rounded-full bg-gray-200"/></div>
 
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 flex-shrink-0">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 shrink-0">
           <div>
             <h2 className="text-base font-bold text-gray-900">Input Data Harian</h2>
             <p className="text-xs text-gray-400 mt-0.5">Langkah {step+1} dari {WIZARD_STEPS.length}</p>
@@ -280,11 +285,11 @@ function InputHarianModal({ tanggalAwal, onClose, onSave }) {
         </div>
 
         {/* Step bar */}
-        <div className="flex px-5 py-3 gap-1.5 flex-shrink-0">
+        <div className="flex px-5 py-3 gap-1.5 shrink-0">
           {WIZARD_STEPS.map((label,i) => (
             <div key={i} className="flex-1 flex flex-col gap-1">
-              <div className={`h-1 rounded-full transition-all duration-300 ${i<=step?"bg-indigo-500":"bg-gray-100"}`}/>
-              <span className={`text-xs font-medium ${i===step?"text-indigo-600":i<step?"text-emerald-500":"text-gray-300"}`}>{label}</span>
+              <div className={`h-1 rounded-full transition-all duration-300 ${i<=step?"bg-[#22C55E]":"bg-gray-100"}`}/>
+              <span className={`text-xs font-medium ${i===step?"text-[#15803D]":i<step?"text-[#22C55E]":"text-gray-300"}`}>{label}</span>
             </div>
           ))}
         </div>
@@ -308,7 +313,7 @@ function InputHarianModal({ tanggalAwal, onClose, onSave }) {
                 ))}
               </div>
               {form.pendapatan && form.pengeluaran && (
-                <div className={`flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold ${Number(form.pendapatan)-Number(form.pengeluaran)>=0?"bg-emerald-50 text-emerald-700":"bg-red-50 text-red-600"}`}>
+                <div className={`flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold ${Number(form.pendapatan)-Number(form.pengeluaran)>=0?"bg-[#F0FDF4] text-[#15803D]":"bg-red-50 text-red-600"}`}>
                   <span className="text-xs font-medium">Estimasi Laba</span>
                   <span>Rp {fmt(Number(form.pendapatan)-Number(form.pengeluaran))}</span>
                 </div>
@@ -321,7 +326,7 @@ function InputHarianModal({ tanggalAwal, onClose, onSave }) {
               <div>
                 <label className="text-xs font-semibold text-gray-600 mb-1.5 block">Produk Terlaris</label>
                 <select value={form.produk_terlaris_id} onChange={e=>set("produk_terlaris_id",e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-indigo-400 text-sm outline-none appearance-none">
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-[#22C55E] text-sm outline-none appearance-none">
                   <option value="">— Pilih produk —</option>
                   {DUMMY_PRODUK.map(p=><option key={p.id} value={p.id}>{p.produk_nama}</option>)}
                 </select>
@@ -333,7 +338,7 @@ function InputHarianModal({ tanggalAwal, onClose, onSave }) {
             <div className="space-y-3">
               <p className="text-xs text-gray-400">Isi jumlah unit terjual per produk. Kosongkan jika tidak terjual.</p>
               {totalPenjualan > 0 && (
-                <div className="flex items-center justify-between px-4 py-2.5 rounded-xl bg-indigo-50 text-indigo-700 text-sm font-semibold">
+                <div className="flex items-center justify-between px-4 py-2.5 rounded-xl bg-[#F0FDF4] text-[#15803D] text-sm font-semibold">
                   <span className="text-xs font-medium">Total penjualan produk</span>
                   <span>Rp {fmt(totalPenjualan)}</span>
                 </div>
@@ -344,15 +349,15 @@ function InputHarianModal({ tanggalAwal, onClose, onSave }) {
                     <p className="text-sm font-semibold text-gray-800 truncate">{p.produk_nama}</p>
                     <p className="text-xs text-gray-400 mt-0.5">Rp {fmt(p.produk_harga)} / unit</p>
                   </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
+                  <div className="flex items-center gap-2 shrink-0">
                     <button type="button" onClick={()=>setPenjualan(idx,Math.max(0,(parseInt(p.qty)||0)-1).toString())}
-                      className="w-7 h-7 rounded-lg border border-gray-200 bg-white text-gray-500 flex items-center justify-center font-bold hover:border-indigo-300 transition-all">−</button>
+                      className="w-7 h-7 rounded-lg border border-gray-200 bg-white text-gray-500 flex items-center justify-center font-bold hover:border-[#86EFAC] transition-all">−</button>
                     <input type="number" min="0" value={p.qty} onChange={e=>setPenjualan(idx,e.target.value)} placeholder="0"
-                      className="w-14 text-center px-2 py-1.5 rounded-lg border border-gray-200 bg-white text-sm font-bold outline-none focus:border-indigo-400"/>
+                      className="w-14 text-center px-2 py-1.5 rounded-lg border border-gray-200 bg-white text-sm font-bold outline-none focus:border-[#22C55E]"/>
                     <button type="button" onClick={()=>setPenjualan(idx,((parseInt(p.qty)||0)+1).toString())}
-                      className="w-7 h-7 rounded-lg border border-gray-200 bg-white text-gray-500 flex items-center justify-center font-bold hover:border-indigo-300 transition-all">+</button>
+                      className="w-7 h-7 rounded-lg border border-gray-200 bg-white text-gray-500 flex items-center justify-center font-bold hover:border-[#86EFAC] transition-all">+</button>
                   </div>
-                  {p.qty > 0 && <div className="text-xs text-right text-indigo-600 font-semibold w-20 flex-shrink-0">Rp {fmt((parseInt(p.qty)||0)*p.produk_harga)}</div>}
+                  {p.qty > 0 && <div className="text-xs text-right text-[#15803D] font-semibold w-20 shrink-0">Rp {fmt((parseInt(p.qty)||0)*p.produk_harga)}</div>}
                 </div>
               ))}
             </div>
@@ -364,7 +369,7 @@ function InputHarianModal({ tanggalAwal, onClose, onSave }) {
                 <div key={f.key}>
                   <label className="text-xs font-semibold text-gray-600 mb-1.5 block">{f.label}</label>
                   <textarea value={form[f.key]} onChange={e=>set(f.key,e.target.value)} placeholder={f.ph} rows={3}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 text-sm outline-none transition-all resize-none"/>
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-[#22C55E] focus:ring-2 focus:ring-[#DCFCE7] text-sm outline-none transition-all resize-none"/>
                 </div>
               ))}
               <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100 space-y-2">
@@ -387,14 +392,14 @@ function InputHarianModal({ tanggalAwal, onClose, onSave }) {
         </div>
 
         {/* Footer */}
-        <div className="flex gap-3 px-5 py-4 border-t border-gray-100 flex-shrink-0">
+        <div className="flex gap-3 px-5 py-4 border-t border-gray-100 shrink-0">
           {step > 0
             ? <button onClick={back} className="flex-1 py-2.5 rounded-xl text-sm font-medium text-gray-500 border border-gray-200 hover:bg-gray-50 transition-all">← Kembali</button>
             : <button onClick={onClose} className="flex-1 py-2.5 rounded-xl text-sm font-medium text-gray-500 border border-gray-200 hover:bg-gray-50 transition-all">Batal</button>
           }
           {step < WIZARD_STEPS.length - 1
-            ? <button onClick={next} className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700 active:scale-95 transition-all">Lanjut →</button>
-            : <button onClick={submit} className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-emerald-500 text-white hover:bg-emerald-600 active:scale-95 transition-all flex items-center justify-center gap-1.5">
+            ? <button onClick={next} className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-[#22C55E] text-white hover:bg-[#15803D] active:scale-95 transition-all">Lanjut →</button>
+            : <button onClick={submit} className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-[#16A34A] text-white hover:bg-[#15803D] active:scale-95 transition-all flex items-center justify-center gap-1.5">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
                 Simpan Data
               </button>
@@ -426,13 +431,13 @@ function TabInputHarian({ onOpenModal }) {
           <div>
             <p className="text-xs text-gray-400">Siklus #{SIKLUS_INFO.siklus_ke} · {fmtDate(SIKLUS_INFO.dari)} — {fmtDate(SIKLUS_INFO.sampai)}</p>
           </div>
-          <p className="text-sm font-black text-indigo-600">{SIKLUS_INFO.jumlah_data_terisi}<span className="text-xs font-semibold text-gray-400">/{SIKLUS_INFO.jumlah_data_dibutuhkan}</span></p>
+          <p className="text-sm font-black text-[#15803D]">{SIKLUS_INFO.jumlah_data_terisi}<span className="text-xs font-semibold text-gray-400">/{SIKLUS_INFO.jumlah_data_dibutuhkan}</span></p>
         </div>
         <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-          <div className="h-full bg-indigo-500 rounded-full transition-all duration-700" style={{ width:`${progress}%` }}/>
+          <div className="h-full bg-[#22C55E] rounded-full transition-all duration-700" style={{ width:`${progress}%` }}/>
         </div>
         {!SIKLUS_INFO.data_lengkap && (
-          <p className="mt-2 text-xs text-indigo-500 font-medium">⚡ Lengkapi {SIKLUS_INFO.jumlah_data_dibutuhkan - SIKLUS_INFO.jumlah_data_terisi} hari lagi untuk generate analisa AI</p>
+          <p className="mt-2 text-xs text-[#22C55E] font-medium">Lengkapi {SIKLUS_INFO.jumlah_data_dibutuhkan - SIKLUS_INFO.jumlah_data_terisi} hari lagi untuk generate analisa AI</p>
         )}
       </div>
 
@@ -456,7 +461,7 @@ function TabInputHarian({ onOpenModal }) {
       {/* Tombol input hari ini shortcut */}
       {!selectedDate && (
         <button onClick={() => onOpenModal(toYMD(new Date()))}
-          className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-indigo-600 text-white text-sm font-semibold shadow-sm shadow-indigo-200 hover:bg-indigo-700 active:scale-95 transition-all">
+          className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-[#22C55E] text-white text-sm font-semibold shadow-sm shadow-[#BBF7D0] hover:bg-[#15803D] active:scale-95 transition-all">
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"/></svg>
           Input Data Hari Ini
         </button>
@@ -480,12 +485,12 @@ function TabGenerate() {
           <span className="text-sm text-gray-400 mb-1">/ {SIKLUS_INFO.jumlah_data_dibutuhkan} hari terisi</span>
         </div>
         <div className="w-full h-3 bg-gray-100 rounded-full overflow-hidden mb-2">
-          <div className={`h-full rounded-full transition-all duration-700 ${progress>=100?"bg-emerald-500":"bg-indigo-500"}`} style={{width:`${progress}%`}}/>
+          <div className={`h-full rounded-full transition-all duration-700 ${progress>=100?"bg-[#16A34A]":"bg-[#22C55E]"}`} style={{width:`${progress}%`}}/>
         </div>
         <div className="grid grid-cols-3 gap-2 mt-4">
           {[
-            {label:"Data terisi",value:SIKLUS_INFO.jumlah_data_terisi,icon:"📅"},
-            {label:"Dibutuhkan", value:SIKLUS_INFO.jumlah_data_dibutuhkan,icon:"🎯"},
+            {label:"Data terisi",value:SIKLUS_INFO.jumlah_data_terisi,icon:<SlCalender size={16} className="text-gray-400" />},
+            {label:"Dibutuhkan", value:SIKLUS_INFO.jumlah_data_dibutuhkan,icon:"target"},
             {label:"Sisa hari",  value:SIKLUS_INFO.jumlah_data_dibutuhkan-SIKLUS_INFO.jumlah_data_terisi,icon:"⏳"},
           ].map(s=>(
             <div key={s.label} className="bg-gray-50 rounded-xl p-3 text-center">
@@ -497,23 +502,23 @@ function TabGenerate() {
         </div>
       </div>
 
-      <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-4">
-        <div className="flex items-center gap-2 mb-2"><span>🗺️</span><p className="text-xs font-bold text-indigo-700">Orientasi AI Aktif</p></div>
-        <p className="text-xs text-indigo-600 leading-relaxed">AI akan menganalisa berdasarkan <strong>roadmap aktif</strong> kamu. Jika tidak ada roadmap, analisa mengacu pada tujuan bisnis.</p>
+      <div className="bg-[#F0FDF4] border border-[#DCFCE7] rounded-2xl p-4">
+        <div className="flex items-center gap-2 mb-2"><LuMap size={14} className="text-[#15803D] shrink-0" /><p className="text-xs font-bold text-[#15803D]">Orientasi AI Aktif</p></div>
+        <p className="text-xs text-[#15803D] leading-relaxed">AI akan menganalisa berdasarkan <strong>roadmap aktif</strong> kamu. Jika tidak ada roadmap, analisa mengacu pada tujuan bisnis.</p>
       </div>
 
       {!done ? (
         <button onClick={() => { setLoading(true); setTimeout(()=>{setLoading(false);setDone(true);},2500); }}
           disabled={loading || !SIKLUS_INFO.bisa_generate}
-          className={`w-full py-4 rounded-2xl text-sm font-bold transition-all flex items-center justify-center gap-2 ${SIKLUS_INFO.bisa_generate?"bg-indigo-600 text-white shadow-sm shadow-indigo-200 hover:bg-indigo-700 active:scale-95":"bg-gray-100 text-gray-400 cursor-not-allowed"}`}>
+          className={`w-full py-4 rounded-2xl text-sm font-bold transition-all flex items-center justify-center gap-2 ${SIKLUS_INFO.bisa_generate?"bg-[#22C55E] text-white shadow-sm shadow-[#BBF7D0] hover:bg-[#15803D] active:scale-95":"bg-gray-100 text-gray-400 cursor-not-allowed"}`}>
           {loading ? (<><svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>Gemini sedang menganalisa…</>)
-            : (<><span className="text-lg">✨</span>{SIKLUS_INFO.bisa_generate?"Generate Analisa AI":`Data kurang ${SIKLUS_INFO.jumlah_data_dibutuhkan-SIKLUS_INFO.jumlah_data_terisi} hari lagi`}</>)}
+            : (<><LuSparkles size={16} />{SIKLUS_INFO.bisa_generate?"Generate Analisa AI":`Data kurang ${SIKLUS_INFO.jumlah_data_dibutuhkan-SIKLUS_INFO.jumlah_data_terisi} hari lagi`}</>)}
         </button>
       ) : (
-        <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-5 text-center space-y-2">
-          <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center text-2xl mx-auto">✅</div>
-          <p className="text-sm font-bold text-emerald-700">Analisa berhasil digenerate!</p>
-          <p className="text-xs text-emerald-600">Lihat hasilnya di tab Riwayat</p>
+        <div className="bg-[#F0FDF4] border border-[#BBF7D0] rounded-2xl p-5 text-center space-y-2">
+          <div className="w-12 h-12 bg-[#DCFCE7] rounded-full flex items-center justify-center mx-auto"><LuCheck size={24} className="text-[#16A34A]" /></div>
+          <p className="text-sm font-bold text-[#15803D]">Analisa berhasil digenerate!</p>
+          <p className="text-xs text-[#16A34A]">Lihat hasilnya di tab Riwayat</p>
         </div>
       )}
 
@@ -526,8 +531,8 @@ function TabGenerate() {
             {label:"Ada koneksi internet",         ok:true},
           ].map(s=>(
             <div key={s.label} className="flex items-center gap-2.5">
-              <div className={`w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 ${s.ok?"bg-emerald-100":"bg-gray-100"}`}>
-                {s.ok ? <svg className="w-2.5 h-2.5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg> : <div className="w-1.5 h-1.5 rounded-full bg-gray-300"/>}
+              <div className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 ${s.ok?"bg-[#DCFCE7]":"bg-gray-100"}`}>
+                {s.ok ? <svg className="w-2.5 h-2.5 text-[#16A34A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg> : <div className="w-1.5 h-1.5 rounded-full bg-gray-300"/>}
               </div>
               <span className={`text-xs font-medium ${s.ok?"text-gray-700":"text-gray-400"}`}>{s.label}</span>
             </div>
@@ -561,31 +566,31 @@ function TabRiwayat() {
                 <p className="text-xs text-gray-400 font-medium">Analisa Siklus</p>
                 <p className="text-sm font-bold text-gray-800 mt-0.5">{fmtDate(date)}</p>
                 <div className="flex items-center gap-1.5 mt-1.5">
-                  <span className={`text-xs px-2 py-0.5 rounded-full font-semibold border ${eval_?.orientasi_pakai==="roadmap"?"bg-indigo-50 text-indigo-600 border-indigo-200":"bg-purple-50 text-purple-600 border-purple-200"}`}>
-                    {eval_?.orientasi_pakai==="roadmap"?"🗺️ Roadmap":"🎯 Tujuan Bisnis"}
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-semibold border ${eval_?.orientasi_pakai==="roadmap"?"bg-[#F0FDF4] text-[#15803D] border-[#BBF7D0]":"bg-[#F0FDF4] text-[#15803D] border-[#BBF7D0]"}`}>
+                    {eval_?.orientasi_pakai==="roadmap" ? <><LuMap size={11} /> Roadmap</> : <><LuTarget size={11} /> Tujuan Bisnis</>}
                   </span>
-                  {eval_ && <span className="text-xs bg-blue-50 text-blue-600 border border-blue-200 px-2 py-0.5 rounded-full font-semibold">📊 Evaluasi</span>}
-                  {plan  && <span className="text-xs bg-emerald-50 text-emerald-600 border border-emerald-200 px-2 py-0.5 rounded-full font-semibold">📋 Rencana</span>}
+                  {eval_ && <span className="text-xs bg-blue-50 text-blue-600 border border-blue-200 px-2 py-0.5 rounded-full font-semibold flex items-center gap-1"><LuChartColumnBig  size={10} /> Evaluasi</span>}
+                  {plan  && <span className="text-xs bg-[#F0FDF4] text-[#16A34A] border border-[#BBF7D0] px-2 py-0.5 rounded-full font-semibold flex items-center gap-1"><LuClipboardList size={10} /> Rencana</span>}
                 </div>
               </div>
-              <svg className={`w-4 h-4 text-gray-400 flex-shrink-0 transition-transform duration-200 ${isOpen?"rotate-180":""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7"/></svg>
+              <svg className={`w-4 h-4 text-gray-400 shrink-0 transition-transform duration-200 ${isOpen?"rotate-180":""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7"/></svg>
             </button>
             {isOpen && (
               <div className="px-4 pb-4 space-y-4 border-t border-gray-100 pt-4">
                 {eval_ && (
                   <div>
-                    <div className="flex items-center gap-2 mb-2"><span>📊</span><p className="text-xs font-bold text-gray-700">Evaluasi</p><span className="text-xs text-gray-400">{fmtTime(eval_.created_at)}</span></div>
+                    <div className="flex items-center gap-2 mb-2"><LuChartColumnBig  size={14} className="text-gray-500 shrink-0" /><p className="text-xs font-bold text-gray-700">Evaluasi</p><span className="text-xs text-gray-400">{fmtTime(eval_.created_at)}</span></div>
                     <div className="bg-blue-50 rounded-xl p-3.5 text-xs text-blue-900 leading-relaxed border border-blue-100">{eval_.pesan}</div>
                   </div>
                 )}
                 {plan && (
                   <div>
-                    <div className="flex items-center gap-2 mb-2"><span>📋</span><p className="text-xs font-bold text-gray-700">Rekomendasi</p><span className="text-xs text-gray-400">{fmtTime(plan.created_at)}</span></div>
-                    <div className="bg-emerald-50 rounded-xl p-3.5 border border-emerald-100">
+                    <div className="flex items-center gap-2 mb-2"><LuClipboardList size={14} className="text-gray-500 shrink-0" /><p className="text-xs font-bold text-gray-700">Rekomendasi</p><span className="text-xs text-gray-400">{fmtTime(plan.created_at)}</span></div>
+                    <div className="bg-[#F0FDF4] rounded-xl p-3.5 border border-[#DCFCE7]">
                       {plan.pesan.split("\n").filter(Boolean).map((line,i)=>(
                         <div key={i} className="flex items-start gap-2 mb-2 last:mb-0">
-                          <div className="w-5 h-5 rounded-full bg-emerald-200 text-emerald-700 text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">{i+1}</div>
-                          <p className="text-xs text-emerald-900 leading-relaxed">{line.replace(/^\d+\.\s*/,"")}</p>
+                          <div className="w-5 h-5 rounded-full bg-[#BBF7D0] text-[#15803D] text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">{i+1}</div>
+                          <p className="text-xs text-[#14532D] leading-relaxed">{line.replace(/^\d+\.\s*/,"")}</p>
                         </div>
                       ))}
                     </div>
@@ -602,9 +607,9 @@ function TabRiwayat() {
 
 // ─── Main Page ────────────────────────────────────────────────
 const TABS = [
-  { key:"input",    label:"Input Harian", icon:"📅" },
-  { key:"generate", label:"Generate",     icon:"✨" },
-  { key:"riwayat",  label:"Riwayat",      icon:"📋" },
+  { key:"input",    label:"Input Harian", icon:<SlCalender size={14} /> },
+  { key:"generate", label:"Generate",     icon:<LuSparkles size={14} /> },
+  { key:"riwayat",  label:"Riwayat",      icon:<LuClipboardList size={14} /> },
 ];
 
 export default function Analisis() {
@@ -618,16 +623,16 @@ export default function Analisis() {
     <div className="min-h-screen bg-gray-50">
       <div className="sticky top-0 z-30 bg-white border-b border-gray-100 px-4 lg:px-8 pt-10 lg:pt-6 pb-0">
         <div className="max-w-2xl lg:mx-0">
-          <p className="text-xs font-semibold text-indigo-500 uppercase tracking-widest mb-0.5">AI Insights</p>
+          <p className="text-xs font-semibold text-[#22C55E] uppercase tracking-widest mb-0.5">AI Insights</p>
           <h1 className="text-xl font-bold text-gray-900 mb-4">Analisa Bisnis</h1>
         </div>
         <div className="flex gap-0 max-w-2xl lg:mx-0">
           {TABS.map(t => (
             <button key={t.key} onClick={() => setTab(t.key)}
-              className={`flex items-center gap-1.5 px-4 py-2.5 text-xs font-semibold border-b-2 transition-all whitespace-nowrap ${tab===t.key?"border-indigo-600 text-indigo-600":"border-transparent text-gray-400 hover:text-gray-600"}`}>
+              className={`flex items-center gap-1.5 px-4 py-2.5 text-xs font-semibold border-b-2 transition-all whitespace-nowrap ${tab===t.key?"border-[#22C55E] text-[#15803D]":"border-transparent text-gray-400 hover:text-gray-600"}`}>
               <span>{t.icon}</span>{t.label}
               {t.key==="input" && (
-                <span className={`text-xs px-1.5 py-0.5 rounded-full font-bold ${tab==="input"?"bg-indigo-100 text-indigo-600":"bg-gray-100 text-gray-400"}`}>
+                <span className={`text-xs px-1.5 py-0.5 rounded-full font-bold ${tab==="input"?"bg-[#DCFCE7] text-[#15803D]":"bg-gray-100 text-gray-400"}`}>
                   {SIKLUS_INFO.jumlah_data_terisi}/{SIKLUS_INFO.jumlah_data_dibutuhkan}
                 </span>
               )}

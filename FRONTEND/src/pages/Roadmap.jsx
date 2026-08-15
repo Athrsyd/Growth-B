@@ -1,4 +1,7 @@
 import { useState } from "react";
+import { LuZap, LuTarget, LuMap, LuCheck } from "react-icons/lu";
+import { SlCalender } from "react-icons/sl";
+
 
 // ─── Data sementara ───────────────────────────────────────────
 const DUMMY_ROADMAP = [
@@ -56,22 +59,28 @@ const METRIK_LABELS = {
   laba: "Target Laba",
 };
 
+function StatusIcon({ name }) {
+  if (name === "zap")   return <LuZap size={10} />;
+  if (name === "check") return <LuCheck size={10} />;
+  return null;
+}
+
 const STATUS_CONFIG = {
   aktif: {
     label: "Aktif",
-    dot: "bg-indigo-500",
-    dotRing: "ring-indigo-200",
-    badge: "bg-indigo-50 text-indigo-600 border-indigo-200",
-    border: "border-indigo-100",
-    icon: "⚡",
+    dot: "bg-[#22C55E]",
+    dotRing: "ring-[#BBF7D0]",
+    badge: "bg-[#F0FDF4] text-[#15803D] border-[#BBF7D0]",
+    border: "border-[#DCFCE7]",
+    icon: "zap",
   },
   tercapai: {
     label: "Tercapai",
-    dot: "bg-emerald-500",
-    dotRing: "ring-emerald-200",
-    badge: "bg-emerald-50 text-emerald-600 border-emerald-200",
-    border: "border-emerald-100",
-    icon: "✓",
+    dot: "bg-[#16A34A]",
+    dotRing: "ring-[#BBF7D0]",
+    badge: "bg-[#F0FDF4] text-[#16A34A] border-[#DCFCE7]",
+    border: "border-[#DCFCE7]",
+    icon: "check",
   },
   dibatalkan: {
     label: "Dibatalkan",
@@ -79,7 +88,7 @@ const STATUS_CONFIG = {
     dotRing: "ring-gray-100",
     badge: "bg-gray-50 text-gray-400 border-gray-200",
     border: "border-gray-100",
-    icon: "×",
+    icon: null,
   },
 };
 
@@ -158,7 +167,7 @@ function AddModal({ onClose, onSave }) {
               onChange={e => set("judul", e.target.value)}
               placeholder="Contoh: Capai omset 50 juta bulan September"
               className={`w-full px-3.5 py-2.5 rounded-xl border text-sm outline-none transition-all
-                ${errors.judul ? "border-red-300 bg-red-50" : "border-gray-200 bg-gray-50 focus:bg-white focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"}`}
+                ${errors.judul ? "border-red-300 bg-red-50" : "border-gray-200 bg-gray-50 focus:bg-white focus:border-[#22C55E] focus:ring-2 focus:ring-[#DCFCE7]"}`}
             />
             {errors.judul && <p className="mt-1 text-xs text-red-500">{errors.judul}</p>}
           </div>
@@ -170,7 +179,7 @@ function AddModal({ onClose, onSave }) {
               onChange={e => set("deskripsi", e.target.value)}
               placeholder="Langkah-langkah atau catatan tambahan…"
               rows={3}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 text-sm outline-none transition-all resize-none"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-[#22C55E] focus:ring-2 focus:ring-[#DCFCE7] text-sm outline-none transition-all resize-none"
             />
           </div>
 
@@ -180,7 +189,7 @@ function AddModal({ onClose, onSave }) {
               <select
                 value={form.target_metrik}
                 onChange={e => set("target_metrik", e.target.value)}
-                className="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-indigo-400 text-sm outline-none appearance-none"
+                className="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-[#22C55E] text-sm outline-none appearance-none"
               >
                 <option value="">— Pilih —</option>
                 <option value="omset">Omset</option>
@@ -197,7 +206,7 @@ function AddModal({ onClose, onSave }) {
                 onChange={e => set("target_nilai", e.target.value)}
                 placeholder="50000000"
                 className={`w-full px-3.5 py-2.5 rounded-xl border text-sm outline-none transition-all
-                  ${errors.target_nilai ? "border-red-300 bg-red-50" : "border-gray-200 bg-gray-50 focus:bg-white focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"}`}
+                  ${errors.target_nilai ? "border-red-300 bg-red-50" : "border-gray-200 bg-gray-50 focus:bg-white focus:border-[#22C55E] focus:ring-2 focus:ring-[#DCFCE7]"}`}
               />
               {errors.target_nilai && <p className="mt-1 text-xs text-red-500">{errors.target_nilai}</p>}
             </div>
@@ -209,7 +218,7 @@ function AddModal({ onClose, onSave }) {
               type="date"
               value={form.target_tanggal}
               onChange={e => set("target_tanggal", e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 text-sm outline-none transition-all"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-[#22C55E] focus:ring-2 focus:ring-[#DCFCE7] text-sm outline-none transition-all"
             />
           </div>
         </div>
@@ -219,7 +228,7 @@ function AddModal({ onClose, onSave }) {
           <button onClick={onClose} className="flex-1 py-2.5 rounded-xl text-sm font-medium text-gray-500 border border-gray-200 hover:bg-gray-50 transition-all">
             Batal
           </button>
-          <button onClick={submit} className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700 active:scale-95 transition-all">
+          <button onClick={submit} className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-[#22C55E] text-white hover:bg-[#15803D] active:scale-95 transition-all">
             Simpan Goal
           </button>
         </div>
@@ -242,8 +251,8 @@ function CardContent({ item, onMarkDone }) {
         <h3 className={`text-sm font-bold leading-snug ${isCancelled ? "line-through text-gray-400" : "text-gray-800"}`}>
           {item.judul}
         </h3>
-        <span className={`flex-shrink-0 text-xs font-semibold px-2 py-0.5 rounded-full border ${cfg.badge}`}>
-          {cfg.icon} {cfg.label}
+        <span className={`flex flex-row justify-center items-center gap-2 shrink-0 text-xs font-semibold px-2 py-0.5 rounded-full border ${cfg.badge}`}>
+          <StatusIcon name={cfg.icon} /> {cfg.label}
         </span>
       </div>
 
@@ -254,7 +263,7 @@ function CardContent({ item, onMarkDone }) {
       <div className="flex flex-wrap gap-2">
         {item.target_metrik && item.target_nilai && (
           <div className="flex items-center gap-1.5 bg-gray-50 rounded-lg px-2.5 py-1.5">
-            <span className="text-xs">🎯</span>
+            <LuTarget size={12} className="text-gray-400 shrink-0" />
             <div>
               <p className="text-xs text-gray-400 leading-none">{METRIK_LABELS[item.target_metrik]}</p>
               <p className="text-xs font-bold text-gray-700 mt-0.5">
@@ -266,15 +275,15 @@ function CardContent({ item, onMarkDone }) {
 
         {item.target_tanggal && (
           <div className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 ${
-            isDone ? "bg-emerald-50" :
+            isDone ? "bg-[#F0FDF4]" :
             !isCancelled && days < 0 ? "bg-red-50" :
             !isCancelled && days <= 7 ? "bg-amber-50" : "bg-gray-50"
           }`}>
-            <span className="text-xs">📅</span>
+            <SlCalender size={18} className={`shrink-0 ${isDone ? "text-[#16A34A]" : !isCancelled && days < 0 ? "text-red-500" : !isCancelled && days <= 7 ? "text-amber-600" : "text-gray-400"}`} />
             <div>
               <p className="text-xs text-gray-400 leading-none">Deadline</p>
               <p className={`text-xs font-bold mt-0.5 ${
-                isDone ? "text-emerald-600" :
+                isDone ? "text-[#16A34A]" :
                 !isCancelled && days < 0 ? "text-red-600" :
                 !isCancelled && days <= 7 ? "text-amber-600" : "text-gray-700"
               }`}>{fmtDate(item.target_tanggal)}</p>
@@ -288,7 +297,7 @@ function CardContent({ item, onMarkDone }) {
           days < 0   ? "bg-red-50 text-red-500" :
           days === 0 ? "bg-amber-50 text-amber-600" :
           days <= 7  ? "bg-amber-50 text-amber-600" :
-          "bg-indigo-50 text-indigo-500"
+          "bg-[#F0FDF4] text-[#22C55E]"
         }`}>
           {days < 0 ? `Lewat ${Math.abs(days)} hari` : days === 0 ? "Hari ini!" : days <= 7 ? `${days} hari lagi — segera!` : `${days} hari lagi`}
         </div>
@@ -309,7 +318,7 @@ function CardContent({ item, onMarkDone }) {
               </button>
               <button
                 onClick={() => { onMarkDone?.(item.id); setConfirming(false); }}
-                className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500 text-white hover:bg-emerald-600 active:scale-95 transition-all flex items-center gap-1"
+                className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#F0FDF4]0 text-white hover:bg-[#15803D] active:scale-95 transition-all flex items-center gap-1"
               >
                 <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/>
@@ -320,7 +329,7 @@ function CardContent({ item, onMarkDone }) {
           ) : (
             <button
               onClick={() => setConfirming(true)}
-              className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold text-emerald-600 border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 active:scale-95 transition-all"
+              className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold text-[#16A34A] border border-[#BBF7D0] bg-[#F0FDF4] hover:bg-[#DCFCE7] active:scale-95 transition-all"
             >
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/>
@@ -333,11 +342,11 @@ function CardContent({ item, onMarkDone }) {
 
       {/* Badge sudah tercapai */}
       {isDone && (
-        <div className="mt-4 pt-3 border-t border-emerald-100 flex items-center gap-2 text-emerald-600">
+        <div className="mt-4 pt-3 border-t border-[#DCFCE7] flex items-center gap-2 text-[#16A34A]">
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
           </svg>
-          <span className="text-xs font-semibold">Goal ini sudah tercapai 🎉</span>
+          <span className="text-xs font-semibold">Goal ini sudah tercapai</span>
         </div>
       )}
     </div>
@@ -353,8 +362,8 @@ function MobileTimeline({ items, onMarkDone }) {
         const isLast = i === items.length - 1;
         return (
           <div key={item.id} className="flex gap-4">
-            <div className="flex flex-col items-center flex-shrink-0 pt-1">
-              <div className={`w-3 h-3 rounded-full ring-2 ${cfg.dot} ${cfg.dotRing} flex-shrink-0 z-10`} />
+            <div className="flex flex-col items-center shrink-0 pt-1">
+              <div className={`w-3 h-3 rounded-full ring-2 ${cfg.dot} ${cfg.dotRing} shrink-0 z-10`} />
               {!isLast && <div className="w-px flex-1 mt-1.5 bg-gray-200" />}
             </div>
             <div className="flex-1 mb-5">
@@ -428,14 +437,14 @@ function DesktopTimeline({ items, onMarkDone }) {
 function EmptyState({ onAdd }) {
   return (
     <div className="flex flex-col items-center justify-center py-24 px-6 text-center">
-      <div className="w-16 h-16 rounded-2xl bg-indigo-50 flex items-center justify-center text-3xl mb-4">🗺️</div>
+      <div className="w-16 h-16 rounded-2xl bg-[#F0FDF4] flex items-center justify-center mb-4"><LuMap size={28} className="text-[#22C55E]" /></div>
       <h3 className="text-base font-bold text-gray-800 mb-1">Belum ada roadmap</h3>
       <p className="text-sm text-gray-400 max-w-xs mb-6">
         Buat goal pertamamu. AI akan menggunakannya sebagai acuan saat menganalisa bisnismu.
       </p>
       <button
         onClick={onAdd}
-        className="px-5 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 active:scale-95 transition-all"
+        className="px-5 py-2.5 bg-[#22C55E] text-white rounded-xl text-sm font-semibold hover:bg-[#15803D] active:scale-95 transition-all"
       >
         + Buat Goal Pertama
       </button>
@@ -475,12 +484,12 @@ export default function Roadmap() {
       <div className=" top-0 z-30 bg-white border-b border-gray-100 px-4 lg:px-0 pt-4 pb-0">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <p className="text-xs font-semibold text-indigo-500 uppercase tracking-widest mb-0.5">Roadmap</p>
+            <p className="text-xs font-semibold text-[#22C55E] uppercase tracking-widest mb-0.5">Roadmap</p>
             <h1 className="text-xl font-bold text-gray-900">Goal Bisnis</h1>
           </div>
           <button
             onClick={() => setShowModal(true)}
-            className="flex items-center gap-1.5 bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-sm shadow-indigo-200 hover:bg-indigo-700 active:scale-95 transition-all"
+            className="flex items-center gap-1.5 bg-[#22C55E] text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-sm shadow-[#BBF7D0] hover:bg-[#15803D] active:scale-95 transition-all"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
@@ -497,7 +506,7 @@ export default function Roadmap() {
               onClick={() => setFilter(f.key)}
               className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all border ${
                 filter === f.key
-                  ? "bg-indigo-600 text-white border-indigo-600"
+                  ? "bg-[#22C55E] text-white border-[#22C55E]"
                   : "bg-white text-gray-500 border-gray-200 hover:border-gray-300"
               }`}
             >
@@ -519,9 +528,9 @@ export default function Roadmap() {
         ) : (
           <>
             {filter === "semua" && counts.aktif > 0 && (
-              <div className="flex items-center gap-2 bg-indigo-50 rounded-xl px-3.5 py-2.5 mb-6 border border-indigo-100">
-                <span className="text-sm">⚡</span>
-                <p className="text-xs text-indigo-700 font-medium">
+              <div className="flex items-center gap-2 bg-[#F0FDF4] rounded-xl px-3.5 py-2.5 mb-6 border border-[#DCFCE7]">
+                <LuZap size={14} className="text-[#22C55E] shrink-0" />
+                <p className="text-xs text-[#15803D] font-medium">
                   <span className="font-bold">{counts.aktif} goal aktif</span> — AI mengacu pada goal ini saat analisa.
                 </p>
               </div>

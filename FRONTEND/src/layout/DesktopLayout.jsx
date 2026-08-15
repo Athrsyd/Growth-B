@@ -1,22 +1,26 @@
-import React from 'react'
 import { Outlet } from 'react-router-dom'
-import TopBar from '../components/TopBar'
 import Sidebar from '../components/Sidebar'
-import BottomBar from '../components/BottomBar'
 
-const DesktopLayout = () => {
+export default function DesktopLayout() {
   return (
-    <div className="w-full h-screen">
-      <main className='flex flex-row justify-between w-full h-screen'>
-        <div className="h-screen w-1/6">
-          <Sidebar />
-        </div>
-        <div className='flex w-5/6 mx-8 my-4 flex-col '>
+    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--color-bg)' }}>
+      <Sidebar />
+      <main
+        style={{
+          flex: 1,
+          marginLeft: 'var(--sidebar-collapsed)',
+          minHeight: '100vh',
+          transition: `margin-left var(--transition)`,
+        }}
+      >
+        <div style={{
+          maxWidth: 1200,
+          margin: '0 auto',
+          padding: '32px 32px',
+        }}>
           <Outlet />
         </div>
       </main>
     </div>
   )
 }
-
-export default DesktopLayout
