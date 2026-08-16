@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { LuStore, LuChartColumnBig, LuUser } from "react-icons/lu";
+import { LuStore, LuChartBar, LuUser } from "react-icons/lu";
 import {
     LineChart, Line, BarChart, Bar,
     XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid
@@ -298,10 +298,10 @@ function TabBisnis({ bisnis, onEdit }) {
     return (
         <div className="space-y-4">
             {/* Info card */}
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden transition-shadow duration-300 hover:shadow-md">
                 <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
                     <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">Info Bisnis</p>
-                    <button onClick={onEdit} className="flex items-center gap-1 text-xs font-semibold text-[#15803D] hover:text-[#14532D] transition-colors">
+                    <button onClick={onEdit} className="flex items-center gap-1 text-xs font-semibold text-[#15803D] hover:text-[#14532D] transition-colors duration-300">
                         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                         Edit
                     </button>
@@ -317,7 +317,7 @@ function TabBisnis({ bisnis, onEdit }) {
             </div>
 
             {/* Tujuan bisnis */}
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 transition-shadow duration-300 hover:shadow-md">
                 <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">Tujuan Bisnis</p>
                 <div className="flex flex-wrap gap-2">
                     {bisnis.tujuan_bisnis.map(t => (
@@ -334,12 +334,12 @@ function TabProduk({ produkList, onEdit, onAdd }) {
     return (
         <div className="space-y-3">
             {produkList.map(p => (
-                <div key={p.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex items-center gap-3">
+                <div key={p.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex items-center gap-3 transition-all duration-300 hover:shadow-md hover:border-[#DCFCE7]">
                     {/* Foto */}
                     <div className="w-14 h-14 rounded-xl bg-gray-100 shrink-0 overflow-hidden flex items-center justify-center">
                         {p.produk_image_url
                             ? <img src={p.produk_image_url} alt={p.produk_nama} className="w-full h-full object-cover" />
-                            : <span className="text-2xl">🍽️</span>}
+                            : <span className="text-xl text-gray-300 font-bold">?</span>}
                     </div>
 
                     {/* Info */}
@@ -436,7 +436,7 @@ function TabChart() {
 // ─── Main Page ────────────────────────────────────────────────
 function TabIcon({ name }) {
     if (name === "store") return <LuStore size={12} />;
-    if (name === "chart") return <LuChartColumnBig size={12} />;
+    if (name === "chart") return <LuChartBar size={12} />;
     if (name === "user")  return <LuUser size={12} />;
     return null;
 }
@@ -469,52 +469,124 @@ export default function Profile() {
 
     return (
         <div className="min-h-screen bg-gray-50">
+            <style>{`
+                .profile-layout { display: block; }
+                .profile-sidebar { display: none; }
+                .profile-mobile-header { display: block; }
+                .profile-content { padding: 16px 16px 100px; }
+                @media (min-width: 1024px) {
+                    .profile-layout {
+                        display: grid;
+                        grid-template-columns: 280px 1fr;
+                        min-height: 100vh;
+                        align-items: start;
+                    }
+                    .profile-sidebar {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 12px;
+                        position: sticky;
+                        top: 24px;
+                        padding: 28px 20px 28px 28px;
+                    }
+                    .profile-mobile-header { display: none; }
+                    .profile-content { padding: 28px 28px 40px 12px; }
+                    .profile-tabs-mobile { display: none !important; }
+                }
+            `}</style>
 
-            {/* ── Profile Header ── */}
-            <div className="bg-white border-b border-gray-100 px-4 lg:px-8 pt-10 lg:pt-8 pb-0">
-                <div className="max-w-2xl lg:mx-0">
-                    {/* Avatar + nama */}
-                    <div className="flex items-center gap-4 mb-5">
-                        <div className="w-16 h-16 rounded-2xl bg-[#22C55E] flex items-center justify-center text-white text-xl font-black shrink-0 shadow-sm shadow-[#BBF7D0]">
-                            {initials(USER.full_name)}
-                        </div>
-                        <div className="min-w-0">
-                            <h1 className="text-lg font-black text-gray-900 truncate">{bisnis.bisnis_nama}</h1>
-                            <p className="text-xs text-gray-400 mt-0.5">{USER.full_name} · {USER.email}</p>
-                            <div className="flex items-center gap-1.5 mt-1.5">
-                                <span className="text-xs px-2 py-0.5 rounded-full bg-[#F0FDF4] text-[#15803D] font-semibold border border-[#DCFCE7] capitalize">
+            <div className="profile-layout">
+
+                {/* ── Desktop Sidebar ── */}
+                <aside className="profile-sidebar">
+
+                    {/* Avatar card */}
+                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 transition-shadow duration-300 hover:shadow-md">
+                        <div className="flex flex-col items-center text-center">
+                            <div className="w-20 h-20 rounded-2xl bg-[#22C55E] flex items-center justify-center text-white text-2xl font-black shadow-sm shadow-[#BBF7D0] mb-3">
+                                {initials(USER.full_name)}
+                            </div>
+                            <h2 className="text-base font-black text-gray-900 leading-snug mb-0.5">{bisnis.bisnis_nama}</h2>
+                            <p className="text-xs text-gray-400">{USER.full_name}</p>
+                            <p className="text-xs text-gray-400 mb-3">{USER.email}</p>
+                            <div className="flex flex-wrap justify-center gap-1.5">
+                                <span className="text-xs px-2.5 py-1 rounded-full bg-[#F0FDF4] text-[#15803D] font-semibold border border-[#DCFCE7] capitalize">
                                     {bisnis.bisnis_tipe}
                                 </span>
-                                <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 font-semibold">
+                                <span className="text-xs px-2.5 py-1 rounded-full bg-gray-100 text-gray-500 font-semibold">
                                     {bisnis.jumlah_pegawai} pegawai
                                 </span>
                             </div>
                         </div>
                     </div>
 
-                    {/* Tabs */}
-                    <div className="flex gap-0">
+                    {/* Nav links */}
+                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                         {TABS.map(t => (
                             <button key={t.key} onClick={() => setTab(t.key)}
-                                className={`flex items-center gap-1.5 px-4 py-2.5 text-xs font-semibold border-b-2 transition-all ${tab === t.key ? "border-[#22C55E] text-[#15803D]" : "border-transparent text-gray-400 hover:text-gray-600"
-                                    }`}>
+                                className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold transition-all duration-300 border-l-2 ${
+                                    tab === t.key
+                                        ? 'border-[#22C55E] bg-[#F0FDF4] text-[#15803D]'
+                                        : 'border-transparent text-gray-500 hover:bg-gray-50 hover:text-gray-700'
+                                }`}>
                                 <TabIcon name={t.icon} />{t.label}
                             </button>
                         ))}
                     </div>
+
+                    {/* Logout */}
+                    <button className="w-full py-2.5 rounded-xl border border-red-200 text-red-500 text-sm font-semibold hover:bg-red-50 hover:border-red-300 transition-all duration-300 active:scale-95">
+                        Logout
+                    </button>
+                </aside>
+
+                {/* ── Main content area ── */}
+                <div>
+                    {/* Mobile header (hidden on desktop) */}
+                    <div className="profile-mobile-header bg-white border-b border-gray-100 px-4 pt-10 pb-0">
+                        <div className="flex items-center gap-4 mb-5">
+                            <div className="w-16 h-16 rounded-2xl bg-[#22C55E] flex items-center justify-center text-white text-xl font-black shrink-0 shadow-sm shadow-[#BBF7D0]">
+                                {initials(USER.full_name)}
+                            </div>
+                            <div className="min-w-0">
+                                <h1 className="text-lg font-black text-gray-900 truncate">{bisnis.bisnis_nama}</h1>
+                                <p className="text-xs text-gray-400 mt-0.5">{USER.full_name} · {USER.email}</p>
+                                <div className="flex items-center gap-1.5 mt-1.5">
+                                    <span className="text-xs px-2 py-0.5 rounded-full bg-[#F0FDF4] text-[#15803D] font-semibold border border-[#DCFCE7] capitalize">
+                                        {bisnis.bisnis_tipe}
+                                    </span>
+                                    <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 font-semibold">
+                                        {bisnis.jumlah_pegawai} pegawai
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="flex gap-0">
+                            {TABS.map(t => (
+                                <button key={t.key} onClick={() => setTab(t.key)}
+                                    className={`flex items-center gap-1.5 px-4 py-2.5 text-xs font-semibold border-b-2 transition-all ${
+                                        tab === t.key ? 'border-[#22C55E] text-[#15803D]' : 'border-transparent text-gray-400 hover:text-gray-600'
+                                    }`}>
+                                    <TabIcon name={t.icon} />{t.label}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Tab content */}
+                    <div className="profile-content">
+                        {tab === "bisnis" && <TabBisnis bisnis={bisnis} onEdit={() => setModal("edit-bisnis")} />}
+                        {tab === "produk" && <TabProduk produkList={produkList} onEdit={openEditProduk} onAdd={() => setModal("tambah-produk")} />}
+                        {tab === "chart" && <TabChart />}
+                    </div>
                 </div>
             </div>
 
-            {/* ── Content ── */}
-            <div className="px-4 lg:px-8 pt-5 pb-28 lg:pb-10 max-w-2xl lg:mx-0">
-                {tab === "bisnis" && <TabBisnis bisnis={bisnis} onEdit={() => setModal("edit-bisnis")} />}
-                {tab === "produk" && <TabProduk produkList={produkList} onEdit={openEditProduk} onAdd={() => setModal("tambah-produk")} />}
-                {tab === "chart" && <TabChart />}
-            </div>
-
-            <button className="fixed bottom-4 right-4 px-5 py-3.5 rounded-full bg-red-600 text-white text-sm font-semibold shadow-lg shadow-red-200 hover:bg-red-700 active:scale-95 transition-all">
+            {/* Mobile logout (fixed) */}
+            <button className="lg:hidden fixed bottom-4 right-4 px-5 py-3.5 rounded-full bg-red-600 text-white text-sm font-semibold shadow-lg shadow-red-200 hover:bg-red-700 active:scale-95 transition-all">
                 Logout
             </button>
+
             {/* ── Modals ── */}
             {modal === "edit-bisnis" && <EditBisnisModal bisnis={bisnis} onClose={closeModal} onSave={saveBisnis} />}
             {modal === "edit-produk" && editTarget && <EditProdukModal produk={editTarget} onClose={closeModal} onSave={saveProduk} />}

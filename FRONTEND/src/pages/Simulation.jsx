@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { LuZap, LuRocket, LuTriangleAlert , LuCheck, LuLightbulb } from "react-icons/lu";
+import { LuZap, LuRocket, LuTriangleAlert, LuCheck, LuLightbulb } from "react-icons/lu";
 
 // ─── Dummy data ───────────────────────────────────────────────
 const DUMMY_PRODUK = [

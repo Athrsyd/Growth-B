@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  LuTrendingUp, LuTrendingDown, LuMinus,
+  LuTrendingUp, LuTrendingDown,
   LuArrowRight, LuBrain, LuTarget,
-  LuUsers, LuShoppingBag, LuWallet, LuActivity,
+  LuUsers, LuShoppingBag, LuWallet,
   LuChevronRight, LuZap, LuLightbulb,
 } from 'react-icons/lu'
 import {
@@ -15,10 +15,10 @@ import {
 const BISNIS = { nama: 'Warung Makan Bu Sari', user: 'Bu Sari' }
 
 const KPI = [
-  { label: 'Pendapatan',  value: 'Rp 4.250.000', raw: 4250000, delta: 12.4,  icon: LuWallet,       color: '#22C55E' },
-  { label: 'Pengeluaran', value: 'Rp 1.820.000', raw: 1820000, delta: -3.1,  icon: LuShoppingBag,  color: '#F59E0B' },
-  { label: 'Laba Bersih', value: 'Rp 2.430.000', raw: 2430000, delta: 18.7,  icon: LuTrendingUp,   color: '#3B82F6' },
-  { label: 'Pelanggan',   value: '142',           raw: 142,    delta: 7.2,   icon: LuUsers,         color: '#3B82F6' },
+  { label: 'Pendapatan',  value: 'Rp 4.250.000', raw: 4250000, delta: 12.4,  icon: LuWallet,      color: '#22C55E' },
+  { label: 'Pengeluaran', value: 'Rp 1.820.000', raw: 1820000, delta: -3.1,  icon: LuShoppingBag, color: '#F59E0B' },
+  { label: 'Laba Bersih', value: 'Rp 2.430.000', raw: 2430000, delta: 18.7,  icon: LuTrendingUp,  color: '#3B82F6' },
+  { label: 'Pelanggan',   value: '142',           raw: 142,    delta: 7.2,   icon: LuUsers,       color: '#A855F7' },
 ]
 
 const REVENUE_TREND = [
@@ -44,8 +44,6 @@ const AI_INSIGHT = {
   rekomendasi: 'Pertimbangkan bundling Nasi Ayam + Es Teh untuk meningkatkan average order value.',
   confidence: 87,
 }
-
-const HEALTH_SCORE = 74
 
 const ROADMAP = {
   judul: 'Capai Omset Rp 50 Juta',
@@ -79,12 +77,58 @@ function Greeting() {
   const salam = hour < 11 ? 'Selamat pagi' : hour < 15 ? 'Selamat siang' : hour < 19 ? 'Selamat sore' : 'Selamat malam'
   const tanggal = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' })
   return (
-    <div style={{ marginBottom: 24 }}>
+    <div style={{ marginBottom: 20 }}>
       <p style={{ fontSize: 13, color: 'var(--color-text-muted)', marginBottom: 2 }}>{tanggal}</p>
       <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3, marginBottom: 2 }}>
         {salam}, {BISNIS.user}
       </h1>
       <p style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>{BISNIS.nama}</p>
+    </div>
+  )
+}
+
+// ── Quick Action ─────────────────────────────────────────────────
+function QuickAction() {
+  const navigate = useNavigate()
+  return (
+    <div
+      onClick={() => navigate('/analisis')}
+      style={{
+        background: 'var(--color-primary)',
+        borderRadius: 'var(--radius-lg)',
+        padding: '16px 20px',
+        marginBottom: 16,
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        boxShadow: '0 4px 12px rgba(34,197,94,0.2)',
+        transition: 'transform 300ms ease-in-out, box-shadow 300ms ease-in-out',
+      }}
+      onMouseEnter={e => {
+        e.currentTarget.style.transform = 'translateY(-2px)'
+        e.currentTarget.style.boxShadow = '0 8px 24px rgba(34,197,94,0.3)'
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.transform = 'translateY(0)'
+        e.currentTarget.style.boxShadow = '0 4px 12px rgba(34,197,94,0.2)'
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{
+          width: 36, height: 36,
+          background: 'rgba(255,255,255,0.2)',
+          borderRadius: 'var(--radius-sm)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <LuZap size={18} color="white" />
+        </div>
+        <div>
+          <p style={{ fontSize: 14, fontWeight: 700, color: 'white' }}>Input Hari Ini</p>
+          <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.75)' }}>Belum ada data untuk hari ini</p>
+        </div>
+      </div>
+      <LuArrowRight size={18} color="rgba(255,255,255,0.85)" />
     </div>
   )
 }
@@ -97,9 +141,20 @@ function AIInsightCard() {
       borderRadius: 'var(--radius-lg)',
       border: '1px solid var(--color-border)',
       padding: 20,
-      marginBottom: 16,
       boxShadow: 'var(--shadow-card)',
-    }}>
+      transition: 'box-shadow 300ms ease-in-out, border-color 300ms ease-in-out',
+      height: '100%',
+      boxSizing: 'border-box',
+    }}
+      onMouseEnter={e => {
+        e.currentTarget.style.boxShadow = '0 6px 24px rgba(0,0,0,0.08)'
+        e.currentTarget.style.borderColor = 'var(--color-primary-soft)'
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.boxShadow = 'var(--shadow-card)'
+        e.currentTarget.style.borderColor = 'var(--color-border)'
+      }}
+    >
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
         <div style={{
           width: 32, height: 32,
@@ -126,14 +181,12 @@ function AIInsightCard() {
           </span>
         </div>
       </div>
-
       <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)', marginBottom: 6 }}>
         {AI_INSIGHT.kondisi}
       </p>
       <p style={{ fontSize: 13, color: 'var(--color-text-secondary)', lineHeight: 1.6, marginBottom: 12 }}>
         {AI_INSIGHT.insight}
       </p>
-
       <div style={{
         background: 'var(--color-primary-muted)',
         borderRadius: 'var(--radius-sm)',
@@ -149,93 +202,46 @@ function AIInsightCard() {
   )
 }
 
-// ── Health Score ────────────────────────────────────────────────
-function HealthScore({ score }) {
-  const color = score >= 70 ? '#22C55E' : score >= 40 ? '#F59E0B' : '#EF4444'
-  const label = score >= 70 ? 'Sehat' : score >= 40 ? 'Perlu Perhatian' : 'Kritis'
-  const circumference = 2 * Math.PI * 28
-  const offset = circumference - (score / 100) * circumference
-
+// ── KPI Card (single) ────────────────────────────────────────────
+function KPICard({ k }) {
+  const Icon = k.icon
   return (
     <div style={{
       background: 'var(--color-surface)',
-      borderRadius: 'var(--radius-lg)',
+      borderRadius: 'var(--radius-card)',
       border: '1px solid var(--color-border)',
-      padding: 20,
-      marginBottom: 16,
+      padding: '16px',
       boxShadow: 'var(--shadow-card)',
-      display: 'flex',
-      alignItems: 'center',
-      gap: 20,
-    }}>
-      <div style={{ position: 'relative', flexShrink: 0 }}>
-        <svg width={72} height={72} style={{ transform: 'rotate(-90deg)' }}>
-          <circle cx={36} cy={36} r={28} fill="none" stroke="var(--color-border-light)" strokeWidth={6} />
-          <circle
-            cx={36} cy={36} r={28} fill="none"
-            stroke={color} strokeWidth={6}
-            strokeDasharray={circumference}
-            strokeDashoffset={offset}
-            strokeLinecap="round"
-            style={{ transition: 'stroke-dashoffset 0.6s ease' }}
-          />
-        </svg>
+      transition: 'box-shadow 300ms ease-in-out, transform 300ms ease-in-out, border-color 300ms ease-in-out',
+      cursor: 'default',
+    }}
+      onMouseEnter={e => {
+        e.currentTarget.style.boxShadow = `0 6px 20px ${k.color}20`
+        e.currentTarget.style.transform = 'translateY(-2px)'
+        e.currentTarget.style.borderColor = k.color + '40'
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.boxShadow = 'var(--shadow-card)'
+        e.currentTarget.style.transform = 'translateY(0)'
+        e.currentTarget.style.borderColor = 'var(--color-border)'
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+        <p style={{ fontSize: 12, color: 'var(--color-text-secondary)', fontWeight: 500 }}>{k.label}</p>
         <div style={{
-          position: 'absolute', inset: 0,
+          width: 28, height: 28,
+          borderRadius: 'var(--radius-sm)',
+          background: k.color + '18',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)' }}>{score}</span>
+          <Icon size={14} style={{ color: k.color }} />
         </div>
       </div>
-      <div>
-        <p style={{ fontSize: 12, color: 'var(--color-text-muted)', marginBottom: 2 }}>Business Health Score</p>
-        <p style={{ fontSize: 18, fontWeight: 700, color, marginBottom: 2 }}>{label}</p>
-        <p style={{ fontSize: 12, color: 'var(--color-text-secondary)', lineHeight: 1.5 }}>
-          Bisnis kamu berada pada kondisi yang baik. Terus konsisten dengan input harian.
-        </p>
-      </div>
-    </div>
-  )
-}
-
-// ── KPI Grid ─────────────────────────────────────────────────────
-function KPIGrid() {
-  return (
-    <div style={{
-      display: 'grid',
-      gridTemplateColumns: 'repeat(2, 1fr)',
-      gap: 12,
-      marginBottom: 16,
-    }}>
-      {KPI.map((k) => {
-        const Icon = k.icon
-        return (
-          <div key={k.label} style={{
-            background: 'var(--color-surface)',
-            borderRadius: 'var(--radius-card)',
-            border: '1px solid var(--color-border)',
-            padding: '16px',
-            boxShadow: 'var(--shadow-card)',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-              <p style={{ fontSize: 12, color: 'var(--color-text-secondary)', fontWeight: 500 }}>{k.label}</p>
-              <div style={{
-                width: 28, height: 28,
-                borderRadius: 'var(--radius-sm)',
-                background: k.color + '18',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
-                <Icon size={14} style={{ color: k.color }} />
-              </div>
-            </div>
-            <p style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)', marginBottom: 4, lineHeight: 1.2 }}>
-              {k.value}
-            </p>
-            <DeltaBadge delta={k.delta} />
-            <span style={{ fontSize: 10, color: 'var(--color-text-muted)', marginLeft: 4 }}>vs minggu lalu</span>
-          </div>
-        )
-      })}
+      <p style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)', marginBottom: 4, lineHeight: 1.2 }}>
+        {k.value}
+      </p>
+      <DeltaBadge delta={k.delta} />
+      <span style={{ fontSize: 10, color: 'var(--color-text-muted)', marginLeft: 4 }}>vs minggu lalu</span>
     </div>
   )
 }
@@ -269,9 +275,20 @@ function RevenueChart() {
       borderRadius: 'var(--radius-lg)',
       border: '1px solid var(--color-border)',
       padding: 20,
-      marginBottom: 16,
       boxShadow: 'var(--shadow-card)',
-    }}>
+      height: '100%',
+      boxSizing: 'border-box',
+      transition: 'box-shadow 300ms ease-in-out, border-color 300ms ease-in-out',
+    }}
+      onMouseEnter={e => {
+        e.currentTarget.style.boxShadow = '0 6px 24px rgba(0,0,0,0.08)'
+        e.currentTarget.style.borderColor = 'var(--color-primary-soft)'
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.boxShadow = 'var(--shadow-card)'
+        e.currentTarget.style.borderColor = 'var(--color-border)'
+      }}
+    >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
         <div>
           <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>Tren Pendapatan</p>
@@ -320,9 +337,20 @@ function TopProduk() {
       borderRadius: 'var(--radius-lg)',
       border: '1px solid var(--color-border)',
       padding: 20,
-      marginBottom: 16,
       boxShadow: 'var(--shadow-card)',
-    }}>
+      height: '100%',
+      boxSizing: 'border-box',
+      transition: 'box-shadow 300ms ease-in-out, border-color 300ms ease-in-out',
+    }}
+      onMouseEnter={e => {
+        e.currentTarget.style.boxShadow = '0 6px 24px rgba(0,0,0,0.08)'
+        e.currentTarget.style.borderColor = 'var(--color-primary-soft)'
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.boxShadow = 'var(--shadow-card)'
+        e.currentTarget.style.borderColor = 'var(--color-border)'
+      }}
+    >
       <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', marginBottom: 14 }}>Produk Terlaris</p>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {TOP_PRODUK.map((p, i) => (
@@ -371,9 +399,21 @@ function RoadmapProgress() {
         borderRadius: 'var(--radius-lg)',
         border: '1px solid var(--color-border)',
         padding: 20,
-        marginBottom: 16,
         boxShadow: 'var(--shadow-card)',
         cursor: 'pointer',
+        height: '100%',
+        boxSizing: 'border-box',
+        transition: 'box-shadow 300ms ease-in-out, transform 300ms ease-in-out, border-color 300ms ease-in-out',
+      }}
+      onMouseEnter={e => {
+        e.currentTarget.style.boxShadow = '0 6px 24px rgba(34,197,94,0.12)'
+        e.currentTarget.style.transform = 'translateY(-2px)'
+        e.currentTarget.style.borderColor = 'var(--color-primary-soft)'
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.boxShadow = 'var(--shadow-card)'
+        e.currentTarget.style.transform = 'translateY(0)'
+        e.currentTarget.style.borderColor = 'var(--color-border)'
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
@@ -403,55 +443,117 @@ function RoadmapProgress() {
   )
 }
 
-// ── Quick Action ─────────────────────────────────────────────────
-function QuickAction() {
-  const navigate = useNavigate()
-  return (
-    <div
-      onClick={() => navigate('/analisis')}
-      style={{
-        background: 'var(--color-primary)',
-        borderRadius: 'var(--radius-lg)',
-        padding: '16px 20px',
-        marginBottom: 16,
-        cursor: 'pointer',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        boxShadow: '0 4px 12px rgba(34,197,94,0.2)',
-      }}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <div style={{
-          width: 36, height: 36,
-          background: 'rgba(255,255,255,0.2)',
-          borderRadius: 'var(--radius-sm)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>
-          <LuZap size={18} color="white" />
-        </div>
-        <div>
-          <p style={{ fontSize: 14, fontWeight: 700, color: 'white' }}>Input Hari Ini</p>
-          <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.75)' }}>Belum ada data untuk hari ini</p>
-        </div>
-      </div>
-      <LuArrowRight size={18} color="rgba(255,255,255,0.85)" />
-    </div>
-  )
-}
-
 // ── Main ─────────────────────────────────────────────────────────
 export default function Home() {
   return (
-    <div style={{ padding: '20px 16px 0' }}>
-      <Greeting />
-      <QuickAction />
-      <AIInsightCard />
-      <HealthScore score={HEALTH_SCORE} />
-      <KPIGrid />
-      <RevenueChart />
-      <TopProduk />
-      <RoadmapProgress />
-    </div>
+    <>
+      {/* ── Bento layout styles (desktop only) ── */}
+      <style>{`
+        .home-wrapper {
+          padding: 20px 16px 0;
+        }
+        .home-bento {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+        }
+        .bento-kpi {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 12px;
+        }
+        .bento-bottom {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+        }
+        @media (min-width: 1024px) {
+          .home-wrapper {
+            padding: 28px 32px 0;
+          }
+          .home-bento {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: auto;
+            gap: 16px;
+          }
+          /* Greeting + QuickAction: full width */
+          .bento-top-row {
+            grid-column: 1 / -1;
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            align-items: center;
+            gap: 16px;
+          }
+          /* AI Insight: spans full row */
+          .bento-ai {
+            grid-column: 1 / 2;
+            grid-row: 2 / 4;
+          }
+          /* KPI: 2x2 grid on the right */
+          .bento-kpi-wrap {
+            grid-column: 2 / 3;
+            grid-row: 2 / 3;
+          }
+          .bento-kpi {
+            grid-template-columns: repeat(2, 1fr);
+          }
+          /* Roadmap: right side, below KPI */
+          .bento-roadmap {
+            grid-column: 2 / 3;
+            grid-row: 3 / 4;
+          }
+          /* Chart: full width */
+          .bento-chart {
+            grid-column: 1 / -1;
+            grid-row: 4 / 5;
+          }
+          /* Top produk: full width */
+          .bento-produk {
+            grid-column: 1 / -1;
+            grid-row: 5 / 6;
+          }
+        }
+      `}</style>
+
+      <div className="home-wrapper">
+        <div className="home-bento">
+
+          {/* ── Top row: Greeting + QuickAction ── */}
+          <div className="bento-top-row" style={{ gridColumn: '1 / -1' }}>
+            <Greeting />
+            <QuickAction />
+          </div>
+
+          {/* ── AI Insight ── */}
+          <div className="bento-ai">
+            <AIInsightCard />
+          </div>
+
+          {/* ── KPI 2x2 ── */}
+          <div className="bento-kpi-wrap">
+            <div className="bento-kpi">
+              {KPI.map((k) => <KPICard key={k.label} k={k} />)}
+            </div>
+          </div>
+
+          {/* ── Roadmap ── */}
+          <div className="bento-roadmap">
+            <RoadmapProgress />
+          </div>
+
+          {/* ── Chart (full width) ── */}
+          <div className="bento-chart">
+            <RevenueChart />
+          </div>
+
+          {/* ── Top Produk (full width) ── */}
+          <div className="bento-produk" style={{ paddingBottom: 20 }}>
+            <TopProduk />
+          </div>
+
+        </div>
+      </div>
+    </>
   )
 }

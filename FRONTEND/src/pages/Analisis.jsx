@@ -1,9 +1,5 @@
 import { useState } from "react";
-import { LuTrophy, LuTriangleAlert , LuZap, LuTarget,
-   LuSparkles, LuMap, LuChartColumnBig , LuClipboardList, 
-   LuCheck, LuPencilLine } from "react-icons/lu";
-   import { SlCalender } from "react-icons/sl";
-
+import { LuTrophy, LuTriangleAlert, LuZap, LuTarget, LuSparkles, LuMap, LuChartBar, LuClipboardList, LuCheck, LuPencilLine, LuInbox} from "react-icons/lu";
 
 // ─── Dummy data ───────────────────────────────────────────────
 const DUMMY_PRODUK = [
@@ -203,7 +199,7 @@ function DetailHariCard({ tanggal, data, onInput, onClose }) {
           {/* Kendala */}
           {data.kendala && (
             <div className="flex items-start gap-2 text-xs text-amber-700 bg-amber-50 rounded-xl px-3 py-2">
-              <LuTriangleAlert  size={14} className="shrink-0" /><span>{data.kendala}</span>
+              <LuTriangleAlert size={14} className="shrink-0" /><span>{data.kendala}</span>
             </div>
           )}
 
@@ -216,7 +212,7 @@ function DetailHariCard({ tanggal, data, onInput, onClose }) {
         </div>
       ) : (
         <div className="p-4 text-center space-y-3">
-          <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-xl mx-auto">📭</div>
+          <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mx-auto"><LuInbox size={20} className="text-gray-400" /></div>
           <p className="text-sm font-semibold text-gray-700">Belum ada data</p>
           <p className="text-xs text-gray-400">Klik tombol di bawah untuk mengisi data hari ini</p>
           <button onClick={() => onInput(tanggal)}
@@ -489,7 +485,7 @@ function TabGenerate() {
         </div>
         <div className="grid grid-cols-3 gap-2 mt-4">
           {[
-            {label:"Data terisi",value:SIKLUS_INFO.jumlah_data_terisi,icon:<SlCalender size={16} className="text-gray-400" />},
+            {label:"Data terisi",value:SIKLUS_INFO.jumlah_data_terisi,icon:"📅"},
             {label:"Dibutuhkan", value:SIKLUS_INFO.jumlah_data_dibutuhkan,icon:"target"},
             {label:"Sisa hari",  value:SIKLUS_INFO.jumlah_data_dibutuhkan-SIKLUS_INFO.jumlah_data_terisi,icon:"⏳"},
           ].map(s=>(
@@ -569,7 +565,7 @@ function TabRiwayat() {
                   <span className={`text-xs px-2 py-0.5 rounded-full font-semibold border ${eval_?.orientasi_pakai==="roadmap"?"bg-[#F0FDF4] text-[#15803D] border-[#BBF7D0]":"bg-[#F0FDF4] text-[#15803D] border-[#BBF7D0]"}`}>
                     {eval_?.orientasi_pakai==="roadmap" ? <><LuMap size={11} /> Roadmap</> : <><LuTarget size={11} /> Tujuan Bisnis</>}
                   </span>
-                  {eval_ && <span className="text-xs bg-blue-50 text-blue-600 border border-blue-200 px-2 py-0.5 rounded-full font-semibold flex items-center gap-1"><LuChartColumnBig  size={10} /> Evaluasi</span>}
+                  {eval_ && <span className="text-xs bg-blue-50 text-blue-600 border border-blue-200 px-2 py-0.5 rounded-full font-semibold flex items-center gap-1"><LuChartBar size={10} /> Evaluasi</span>}
                   {plan  && <span className="text-xs bg-[#F0FDF4] text-[#16A34A] border border-[#BBF7D0] px-2 py-0.5 rounded-full font-semibold flex items-center gap-1"><LuClipboardList size={10} /> Rencana</span>}
                 </div>
               </div>
@@ -579,7 +575,7 @@ function TabRiwayat() {
               <div className="px-4 pb-4 space-y-4 border-t border-gray-100 pt-4">
                 {eval_ && (
                   <div>
-                    <div className="flex items-center gap-2 mb-2"><LuChartColumnBig  size={14} className="text-gray-500 shrink-0" /><p className="text-xs font-bold text-gray-700">Evaluasi</p><span className="text-xs text-gray-400">{fmtTime(eval_.created_at)}</span></div>
+                    <div className="flex items-center gap-2 mb-2"><LuChartBar size={14} className="text-gray-500 shrink-0" /><p className="text-xs font-bold text-gray-700">Evaluasi</p><span className="text-xs text-gray-400">{fmtTime(eval_.created_at)}</span></div>
                     <div className="bg-blue-50 rounded-xl p-3.5 text-xs text-blue-900 leading-relaxed border border-blue-100">{eval_.pesan}</div>
                   </div>
                 )}
@@ -607,9 +603,9 @@ function TabRiwayat() {
 
 // ─── Main Page ────────────────────────────────────────────────
 const TABS = [
-  { key:"input",    label:"Input Harian", icon:<SlCalender size={14} /> },
-  { key:"generate", label:"Generate",     icon:<LuSparkles size={14} /> },
-  { key:"riwayat",  label:"Riwayat",      icon:<LuClipboardList size={14} /> },
+  { key:"input",    label:"Input Harian", icon:"📅" },
+  { key:"generate", label:"Generate",     icon:"sparkles" },
+  { key:"riwayat",  label:"Riwayat",      icon:"clipboard" },
 ];
 
 export default function Analisis() {

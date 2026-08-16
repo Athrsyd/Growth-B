@@ -612,7 +612,7 @@ export default function BisnisForm({ onFinish }) {
 
   return (
     <div className="min-h-screen bg-linear-to-br from-slate-50 via-[#F0FDF4]/30 to-white flex items-center justify-center p-4">
-      <div className="w-full max-w-xl">
+      <div className="w-full max-w-xl lg:max-w-3xl">
         {/* Header */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 bg-white rounded-full px-4 py-1.5 border border-gray-200 shadow-sm mb-4">
@@ -629,51 +629,82 @@ export default function BisnisForm({ onFinish }) {
         <StepIndicator current={step} steps={STEPS} />
 
         {/* Card */}
-        <div className="bg-white rounded-3xl shadow-xl shadow-[#DCFCE7]/40 border border-gray-100 p-6 sm:p-8">
-          {errors._global && (
-            <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-600">
-              {errors._global}
+        <div className="bg-white rounded-3xl shadow-xl shadow-[#DCFCE7]/40 border border-gray-100 overflow-hidden">
+
+          {/* Desktop two-col layout */}
+          <div className="flex flex-col lg:flex-row">
+
+            {/* Left: step progress (desktop sidebar) */}
+            <div className="hidden lg:flex flex-col gap-1 w-56 shrink-0 bg-gray-50 border-r border-gray-100 p-6 pt-8">
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4">Langkah</p>
+              {STEPS.map((label, i) => {
+                const done = i < step
+                const active = i === step
+                return (
+                  <div key={i} className="flex items-start gap-3 mb-3">
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 mt-0.5 text-xs font-bold transition-all duration-300 ${
+                      done ? 'bg-[#22C55E] text-white' : active ? 'bg-[#F0FDF4] border-2 border-[#22C55E] text-[#15803D]' : 'bg-white border-2 border-gray-200 text-gray-400'
+                    }`}>
+                      {done ? '✓' : i + 1}
+                    </div>
+                    <div>
+                      <p className={`text-xs font-semibold leading-snug transition-colors duration-300 ${active ? 'text-[#15803D]' : done ? 'text-gray-400' : 'text-gray-400'}`}>
+                        {label}
+                      </p>
+                    </div>
+                  </div>
+                )
+              })}
             </div>
-          )}
 
-          {step === 0 && <StepInfoBisnis data={bisnis} onChange={onBisnisChange} errors={errors} />}
-          {step === 1 && <StepJamTim data={bisnis} onChange={onBisnisChange} errors={errors} />}
-          {step === 2 && <StepTarget data={bisnis} onChange={onBisnisChange} errors={errors} />}
-          {step === 3 && (
-            <StepProduk
-              produk={produkList}
-              onAdd={addProduk}
-              onRemove={removeProduk}
-              onChange={onProdukChange}
-              errors={errors}
-            />
-          )}
-          {step === 4 && <StepSelesai bisnis={bisnisResult} />}
+            {/* Right: form content */}
+            <div className="flex-1 p-6 sm:p-8">
+              {errors._global && (
+                <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-600">
+                  {errors._global}
+                </div>
+              )}
 
-          {step < 4 ? (
-            <NavButtons
-              onBack={handleBack}
-              onNext={handleNext}
-              loading={loading}
-              showBack={step > 0}
-              nextLabel={step === 3 ? "Daftarkan Bisnis" : "Lanjut"}
-            />
-          ) : (
-            <div className="pt-6 mt-2 border-t border-gray-100">
-              <button
-                type="button"
-                onClick={() => onFinish?.(bisnisResult)}
-                className="w-full py-3 rounded-xl bg-[#22C55E] text-white text-sm font-semibold hover:bg-[#15803D] active:scale-95 transition-all"
-              >
-                Masuk ke Dashboard →
-              </button>
-            </div>
-          )}
-        </div>
+              {step === 0 && <StepInfoBisnis data={bisnis} onChange={onBisnisChange} errors={errors} />}
+              {step === 1 && <StepJamTim data={bisnis} onChange={onBisnisChange} errors={errors} />}
+              {step === 2 && <StepTarget data={bisnis} onChange={onBisnisChange} errors={errors} />}
+              {step === 3 && (
+                <StepProduk
+                  produk={produkList}
+                  onAdd={addProduk}
+                  onRemove={removeProduk}
+                  onChange={onProdukChange}
+                  errors={errors}
+                />
+              )}
+              {step === 4 && <StepSelesai bisnis={bisnisResult} />}
 
-        {/* Progress text */}
+              {step < 4 ? (
+                <NavButtons
+                  onBack={handleBack}
+                  onNext={handleNext}
+                  loading={loading}
+                  showBack={step > 0}
+                  nextLabel={step === 3 ? "Daftarkan Bisnis" : "Lanjut"}
+                />
+              ) : (
+                <div className="pt-6 mt-2 border-t border-gray-100">
+                  <button
+                    type="button"
+                    onClick={() => onFinish?.(bisnisResult)}
+                    className="w-full py-3 rounded-xl bg-[#22C55E] text-white text-sm font-semibold hover:bg-[#15803D] active:scale-95 transition-all"
+                  >
+                    Masuk ke Dashboard →
+                  </button>
+                </div>
+              )}
+            </div>{/* /Right */}
+          </div>{/* /two-col */}
+        </div>{/* /Card */}
+
+        {/* Progress text (mobile only) */}
         {step < 4 && (
-          <p className="text-center text-xs text-gray-400 mt-4">
+          <p className="text-center text-xs text-gray-400 mt-4 lg:hidden">
             Langkah {step + 1} dari {STEPS.length - 1}
           </p>
         )}

@@ -1,7 +1,5 @@
 import { useState } from "react";
-import { LuZap, LuTarget, LuMap, LuCheck } from "react-icons/lu";
-import { SlCalender } from "react-icons/sl";
-
+import { LuZap, LuTarget, LuMap, LuCheck, LuCalendar } from "react-icons/lu";
 
 // ─── Data sementara ───────────────────────────────────────────
 const DUMMY_ROADMAP = [
@@ -251,7 +249,7 @@ function CardContent({ item, onMarkDone }) {
         <h3 className={`text-sm font-bold leading-snug ${isCancelled ? "line-through text-gray-400" : "text-gray-800"}`}>
           {item.judul}
         </h3>
-        <span className={`flex flex-row justify-center items-center gap-2 shrink-0 text-xs font-semibold px-2 py-0.5 rounded-full border ${cfg.badge}`}>
+        <span className={`flex-shrink-0 text-xs font-semibold px-2 py-0.5 rounded-full border ${cfg.badge}`}>
           <StatusIcon name={cfg.icon} /> {cfg.label}
         </span>
       </div>
@@ -279,7 +277,7 @@ function CardContent({ item, onMarkDone }) {
             !isCancelled && days < 0 ? "bg-red-50" :
             !isCancelled && days <= 7 ? "bg-amber-50" : "bg-gray-50"
           }`}>
-            <SlCalender size={18} className={`shrink-0 ${isDone ? "text-[#16A34A]" : !isCancelled && days < 0 ? "text-red-500" : !isCancelled && days <= 7 ? "text-amber-600" : "text-gray-400"}`} />
+            <LuCalendar size={14} className="text-gray-400 shrink-0" />
             <div>
               <p className="text-xs text-gray-400 leading-none">Deadline</p>
               <p className={`text-xs font-bold mt-0.5 ${
@@ -362,8 +360,8 @@ function MobileTimeline({ items, onMarkDone }) {
         const isLast = i === items.length - 1;
         return (
           <div key={item.id} className="flex gap-4">
-            <div className="flex flex-col items-center shrink-0 pt-1">
-              <div className={`w-3 h-3 rounded-full ring-2 ${cfg.dot} ${cfg.dotRing} shrink-0 z-10`} />
+            <div className="flex flex-col items-center flex-shrink-0 pt-1">
+              <div className={`w-3 h-3 rounded-full ring-2 ${cfg.dot} ${cfg.dotRing} flex-shrink-0 z-10`} />
               {!isLast && <div className="w-px flex-1 mt-1.5 bg-gray-200" />}
             </div>
             <div className="flex-1 mb-5">
