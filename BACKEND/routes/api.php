@@ -31,12 +31,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/bisnis/{id}', [BisnisController::class, 'show']);
     Route::put('/bisnis/{id}', [BisnisController::class, 'update']);
     Route::get('/bisnis/qr/{token}', [BisnisController::class, 'GenerateQR']);
+    Route::get('/bisnis/qr-image/{token}', [BisnisController::class, 'qrImage']);
 
     // Produk
     Route::get('/produk', [ProductController::class, 'index']);
     Route::post('/produk', [ProductController::class, 'store']);
     Route::get('/produk/{id}', [ProductController::class, 'show']);
     Route::put('/produk/{id}', [ProductController::class, 'update']);
+    Route::delete('/produk/{id}/image', [ProductController::class, 'removeImage']);
     Route::delete('/produk/{id}', [ProductController::class, 'destroy']);
 
     // Data Harian

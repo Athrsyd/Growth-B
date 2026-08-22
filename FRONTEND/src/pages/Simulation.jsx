@@ -1,50 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
+import api from "../api/axios";
+import { useAuth } from "../context/AuthContext";
 import { LuZap, LuRocket, LuTriangleAlert, LuCheck, LuLightbulb } from "react-icons/lu";
-
-// ─── Dummy data ───────────────────────────────────────────────
-const DUMMY_PRODUK = [
-  { id: 1, produk_nama: "Nasi Ayam Goreng", produk_harga: 15000 },
-  { id: 2, produk_nama: "Es Teh Manis",     produk_harga: 5000  },
-  { id: 3, produk_nama: "Nasi Capcay",      produk_harga: 18000 },
-  { id: 4, produk_nama: "Jus Alpukat",      produk_harga: 12000 },
-];
-
-const DUMMY_RIWAYAT = [
-  {
-    id: 3,
-    tipe: "produk",
-    produk: { produk_nama: "Nasi Ayam Goreng", produk_harga: 15000 },
-    skenario: { perubahan: "naik", nilai: 2000, harga_lama: 15000, harga_baru: 17000 },
-    hasil_analisa: `DAMPAK:\nKenaikan harga Rp 2.000 (13,3%) pada produk terlaris berpotensi menurunkan volume penjualan sekitar 8–12%. Namun margin laba per unit meningkat, sehingga pendapatan total bisa tetap stabil atau bahkan naik jika penurunan permintaan di bawah 10%.\n\nPELUANG:\nMomen ini bisa dimanfaatkan untuk repositioning produk sebagai "premium value" — tambahkan porsi atau presentasi yang lebih menarik agar pelanggan merasa kenaikan harga sepadan.\n\nRISIKO:\nPelanggan harga-sensitif dapat beralih ke kompetitor atau menu lain yang lebih murah. Penurunan repeat customer perlu dipantau dalam 2 minggu pertama.\n\nREKOMENDASI:\n1. Naikkan harga secara bertahap (Rp 1.000 dulu) sambil amati respons pelanggan.\n2. Buat bundling Nasi Ayam + Es Teh dengan harga spesial.\n3. Aktifkan program member untuk mempertahankan pelanggan loyal.`,
-    roadmap_acuan: [{ judul: "Capai omset Rp 50 juta" }],
-    created_at: "2024-07-14T08:30:00Z",
-  },
-  {
-    id: 2,
-    tipe: "biaya",
-    produk: null,
-    skenario: { jenis_biaya: "Bahan baku", perubahan: "naik", persen: 15 },
-    hasil_analisa: `DAMPAK:\nKenaikan biaya bahan baku 15% akan menambah pengeluaran harian rata-rata sekitar Rp 67.500 (dari baseline Rp 450.000/hari). Laba bersih turun dari Rp 650.000 menjadi sekitar Rp 582.500 per hari.\n\nPELUANG:\nMomentum ini mendorong efisiensi: evaluasi ulang porsi, cari supplier alternatif, dan pertimbangkan menu dengan bahan baku yang lebih stabil harganya.\n\nRISIKO:\nJika tidak ada penyesuaian harga jual, margin laba bisa turun signifikan dalam 30 hari ke depan.\n\nREKOMENDASI:\n1. Negosiasi ulang harga dengan supplier utama.\n2. Evaluasi 2 menu dengan bahan paling mahal — apakah masih menguntungkan.\n3. Pertimbangkan kenaikan harga jual 5% sebagai buffer.`,
-    roadmap_acuan: [],
-    created_at: "2024-07-10T14:15:00Z",
-  },
-  {
-    id: 1,
-    tipe: "jam_operasional",
-    produk: null,
-    skenario: { buka_lama: "07:00:00", tutup_lama: "21:00:00", buka_baru: "06:00", tutup_baru: "22:00", durasi_lama: 14, durasi_baru: 16 },
-    hasil_analisa: `DAMPAK:\nMemperpanjang jam operasional 2 jam (06.00–22.00) berpotensi menambah 10–18 pelanggan per hari, terutama di segmen sarapan pagi dan makan malam akhir.\n\nPELUANG:\nSegmen pelajar dan karyawan yang berangkat pagi bisa menjadi pelanggan baru yang belum terjangkau sebelumnya.\n\nRISIKO:\nBiaya operasional naik (listrik, gaji lembur) sekitar Rp 50.000–80.000/hari. Perlu dipastikan jumlah pelanggan tambahan cukup untuk menutup biaya tersebut.\n\nREKOMENDASI:\n1. Coba perpanjang jam dulu di weekend selama 2 minggu.\n2. Catat jumlah pembeli di jam tambahan untuk evaluasi.\n3. Jika hasilnya positif, terapkan secara penuh.`,
-    roadmap_acuan: [],
-    created_at: "2024-07-05T10:00:00Z",
-  },
-];
-
-const KUOTA = { terpakai: 1, batas: 3, sisa: 2 };
-const BISNIS = {
-  bisnis_nama: "Warung Makan Bu Sari",
-  bisnis_buka: "07:00:00",
-  bisnis_tutup: "21:00:00",
-};
 
 // ─── Helpers ──────────────────────────────────────────────────
 const fmt     = (v) => new Intl.NumberFormat("id-ID").format(v);
@@ -157,8 +114,8 @@ function TipeSelector({ selected, onChange }) {
 }
 
 // ─── Form: Produk ──────────────────────────────────────────────
-function FormProduk({ form, setForm, errors }) {
-  const produk = DUMMY_PRODUK.find((p) => p.id === Number(form.produk_id));
+function FormProduk({ form, setForm, errors, produkList, needRating }) {
+  const produk = produkList.find((p) => p.id === Number(form.produk_id));
   const hargaBaru =
     produk && form.nilai
       ? form.perubahan === "naik"
@@ -180,7 +137,7 @@ function FormProduk({ form, setForm, errors }) {
             ${errors.produk_id ? "border-red-300 bg-red-50" : "border-gray-200 focus:bg-white focus:border-green-400 focus:ring-2 focus:ring-green-100"}`}
         >
           <option value="">Pilih produk…</option>
-          {DUMMY_PRODUK.map((p) => (
+          {produkList.map((p) => (
             <option key={p.id} value={p.id}>
               {p.produk_nama} — Rp {fmt(p.produk_harga)}
             </option>
@@ -253,6 +210,32 @@ function FormProduk({ form, setForm, errors }) {
               Rp {fmt(hargaBaru)}
             </p>
           </div>
+        </div>
+      )}
+
+      {/* Rating manual — muncul jika produk belum punya data historis terlaris */}
+      {needRating && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
+          <p className="text-xs text-amber-700 mb-2">
+            Produk ini belum pernah tercatat sebagai produk terlaris. Beri rating performa produk ini secara manual (1–10).
+          </p>
+          <div className="grid grid-cols-5 gap-1.5">
+            {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
+              <button
+                key={n}
+                type="button"
+                onClick={() => setForm((f) => ({ ...f, rating_manual: n }))}
+                className={`py-1.5 rounded-lg text-xs font-bold border transition-all ${
+                  Number(form.rating_manual) === n
+                    ? "border-amber-500 bg-amber-500 text-white"
+                    : "border-amber-200 bg-white text-amber-600 hover:bg-amber-100"
+                }`}
+              >
+                {n}
+              </button>
+            ))}
+          </div>
+          {errors.rating_manual && <p className="mt-1.5 text-xs text-red-500">{errors.rating_manual}</p>}
         </div>
       )}
     </div>
@@ -330,10 +313,13 @@ function FormBiaya({ form, setForm, errors }) {
 }
 
 // ─── Form: Jam Operasional ────────────────────────────────────
-function FormJam({ form, setForm, errors }) {
+function FormJam({ form, setForm, errors, bisnis }) {
+  const bukaLama  = bisnis?.bisnis_buka  ?? "00:00:00";
+  const tutupLama = bisnis?.bisnis_tutup ?? "00:00:00";
+
   const durasiLama = (() => {
-    const [bh, bm] = BISNIS.bisnis_buka.split(":").map(Number);
-    const [th, tm] = BISNIS.bisnis_tutup.split(":").map(Number);
+    const [bh, bm] = bukaLama.split(":").map(Number);
+    const [th, tm] = tutupLama.split(":").map(Number);
     return th * 60 + tm - (bh * 60 + bm);
   })();
 
@@ -353,7 +339,7 @@ function FormJam({ form, setForm, errors }) {
       <div className="bg-gray-50 rounded-xl border border-gray-100 p-3">
         <p className="text-[10px] text-gray-400 mb-1 font-semibold uppercase tracking-wide">Jam Saat Ini</p>
         <p className="text-sm font-bold text-gray-700">
-          {BISNIS.bisnis_buka.slice(0, 5)} – {BISNIS.bisnis_tutup.slice(0, 5)}
+          {bukaLama.slice(0, 5)} – {tutupLama.slice(0, 5)}
           <span className="ml-2 text-xs font-normal text-gray-400">({Math.round(durasiLama / 60)} jam)</span>
         </p>
       </div>
@@ -552,23 +538,53 @@ function RiwayatCard({ item }) {
 
 // ─── Main Page ────────────────────────────────────────────────
 export default function Simulation() {
+  const { bisnis } = useAuth()
+  const [riwayat, setRiwayat]     = useState([])
+  const [kuota, setKuota]         = useState(null)
+  const [produkList, setProdukList] = useState([])
+  const [initLoading, setInitLoading] = useState(true)
+
+  const fetchInit = useCallback(async () => {
+    setInitLoading(true)
+    try {
+      const [riwRes, kuotaRes, prodRes] = await Promise.all([
+        api.get('/what-if?per_page=20').catch(() => null),
+        api.get('/what-if/kuota').catch(() => null),
+        api.get('/produk').catch(() => null),
+      ])
+      if (riwRes?.data?.data)   setRiwayat(riwRes.data.data)
+      if (kuotaRes?.data?.data) setKuota(kuotaRes.data.data)
+      if (prodRes?.data?.data)  setProdukList(prodRes.data.data)
+    } finally { setInitLoading(false) }
+  }, [])
+
+  useEffect(() => { fetchInit() }, [fetchInit])
+
+  const handlePredict = async (payload) => {
+    const { data } = await api.post('/what-if/predict', payload)
+    setRiwayat(prev => [data.data, ...prev])
+    if (data.kuota) setKuota(data.kuota)
+    return data.data
+  }
+
   const [tipe, setTipe] = useState("produk");
   const [loading, setLoading] = useState(false);
   const [hasil, setHasil] = useState(null);
   const [errors, setErrors] = useState({});
+  const [globalErr, setGlobalErr] = useState("");
   const [tab, setTab] = useState("simulasi"); // "simulasi" | "riwayat"
+  const [needRating, setNeedRating] = useState(false);
 
-  const [formProduk, setFormProduk] = useState({ produk_id: "", perubahan: "naik", nilai: "" });
+  const [formProduk, setFormProduk] = useState({ produk_id: "", perubahan: "naik", nilai: "", rating_manual: "" });
   const [formBiaya, setFormBiaya] = useState({ jenis_biaya: "", perubahan: "naik", persen: "" });
   const [formJam, setFormJam] = useState({ buka_baru: "", tutup_baru: "" });
-
-  const kuota = KUOTA;
 
   const validate = () => {
     const e = {};
     if (tipe === "produk") {
       if (!formProduk.produk_id) e.produk_id = "Pilih produk terlebih dahulu";
       if (!formProduk.nilai || Number(formProduk.nilai) <= 0) e.nilai = "Masukkan nominal perubahan";
+      if (needRating && !formProduk.rating_manual) e.rating_manual = "Beri rating 1-10 terlebih dahulu";
     }
     if (tipe === "biaya") {
       if (!formBiaya.jenis_biaya.trim()) e.jenis_biaya = "Jenis biaya wajib diisi";
@@ -581,26 +597,63 @@ export default function Simulation() {
     return e;
   };
 
+  const buildPayload = () => {
+    if (tipe === "produk") {
+      return {
+        tipe: "produk",
+        produk_id: Number(formProduk.produk_id),
+        perubahan: formProduk.perubahan,
+        nilai: Number(formProduk.nilai),
+        ...(needRating && formProduk.rating_manual ? { rating_manual: Number(formProduk.rating_manual) } : {}),
+      };
+    }
+    if (tipe === "biaya") {
+      return {
+        tipe: "biaya",
+        jenis_biaya: formBiaya.jenis_biaya,
+        perubahan: formBiaya.perubahan,
+        persen: Number(formBiaya.persen),
+      };
+    }
+    return {
+      tipe: "jam_operasional",
+      buka_baru: formJam.buka_baru,
+      tutup_baru: formJam.tutup_baru,
+    };
+  };
+
   const handleSubmit = async () => {
     const e = validate();
     if (Object.keys(e).length > 0) { setErrors(e); return; }
     setErrors({});
+    setGlobalErr("");
     setLoading(true);
     setHasil(null);
 
-    // Simulasi delay AI (ganti dengan axios call ke /api/what-if/predict)
-    await new Promise((r) => setTimeout(r, 1800));
-
-    // Ambil dummy hasil dari riwayat pertama sesuai tipe
-    const dummy = DUMMY_RIWAYAT.find((r) => r.tipe === tipe);
-    setHasil(dummy?.hasil_analisa ?? "Analisa tidak tersedia.");
-    setLoading(false);
+    try {
+      const result = await handlePredict(buildPayload());
+      setHasil(result.hasil_analisa);
+      setNeedRating(false);
+    } catch (err) {
+      const res = err.response?.data;
+      if (res?.need_rating) {
+        setNeedRating(true);
+        setErrors({ rating_manual: null });
+        setGlobalErr(res.info ?? "Produk ini butuh rating manual — lihat form di bawah.");
+      } else {
+        setGlobalErr(res?.message ?? "Gagal menjalankan simulasi");
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   const resetForm = () => {
     setHasil(null);
     setErrors({});
-    setFormProduk({ produk_id: "", perubahan: "naik", nilai: "" });
+    setGlobalErr("");
+    setNeedRating(false);
+    setFormProduk({ produk_id: "", perubahan: "naik", nilai: "", rating_manual: "" });
     setFormBiaya({ jenis_biaya: "", perubahan: "naik", persen: "" });
     setFormJam({ buka_baru: "", tutup_baru: "" });
   };
@@ -627,7 +680,7 @@ export default function Simulation() {
           <div className="flex border-b border-gray-100">
             {[
               { key: "simulasi", label: "Simulasi Baru" },
-              { key: "riwayat", label: `Riwayat (${DUMMY_RIWAYAT.length})` },
+              { key: "riwayat", label: `Riwayat (${riwayat.length})` },
             ].map((t) => (
               <button
                 key={t.key}
@@ -651,32 +704,38 @@ export default function Simulation() {
         {tab === "simulasi" && (
           <div>
             {/* Kuota */}
-            <KuotaBar kuota={kuota} />
+            {kuota && <KuotaBar kuota={kuota} />}
 
             {/* Form card */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 mb-4">
               {/* Tipe selector */}
-              <TipeSelector selected={tipe} onChange={(t) => { setTipe(t); setHasil(null); setErrors({}); }} />
+              <TipeSelector selected={tipe} onChange={(t) => { setTipe(t); resetForm(); }} />
 
               <div className="w-full h-px bg-gray-100 mb-4" />
 
               {/* Form dinamis */}
               {tipe === "produk" && (
-                <FormProduk form={formProduk} setForm={setFormProduk} errors={errors} />
+                <FormProduk form={formProduk} setForm={setFormProduk} errors={errors} produkList={produkList} needRating={needRating} />
               )}
               {tipe === "biaya" && (
                 <FormBiaya form={formBiaya} setForm={setFormBiaya} errors={errors} />
               )}
               {tipe === "jam_operasional" && (
-                <FormJam form={formJam} setForm={setFormJam} errors={errors} />
+                <FormJam form={formJam} setForm={setFormJam} errors={errors} bisnis={bisnis} />
+              )}
+
+              {globalErr && (
+                <div className="mt-3 bg-red-50 border border-red-100 text-red-600 text-xs rounded-xl px-3 py-2.5">
+                  {globalErr}
+                </div>
               )}
 
               {/* Submit */}
               <button
                 onClick={handleSubmit}
-                disabled={loading || kuota.sisa === 0}
+                disabled={loading || initLoading || (kuota && kuota.sisa === 0)}
                 className={`mt-5 w-full py-3 rounded-xl text-sm font-bold transition-all
-                  ${loading || kuota.sisa === 0
+                  ${loading || initLoading || (kuota && kuota.sisa === 0)
                     ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                     : "bg-green-500 hover:bg-green-600 text-white shadow-sm shadow-green-200 active:scale-[0.98]"
                   }`}
@@ -689,10 +748,10 @@ export default function Simulation() {
                     </svg>
                     Menganalisa…
                   </span>
-                ) : kuota.sisa === 0 ? (
+                ) : kuota && kuota.sisa === 0 ? (
                   "Kuota hari ini sudah habis"
                 ) : (
-                  `Analisa Skenario · Sisa ${kuota.sisa}x`
+                  `Analisa Skenario${kuota ? ` · Sisa ${kuota.sisa}x` : ""}`
                 )}
               </button>
             </div>
@@ -719,7 +778,7 @@ export default function Simulation() {
         {/* ── Tab: Riwayat ── */}
         {tab === "riwayat" && (
           <div>
-            {DUMMY_RIWAYAT.length === 0 ? (
+            {riwayat.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-center">
                 <div className="w-14 h-14 rounded-2xl bg-[#F0FDF4] flex items-center justify-center mb-3"><LuLightbulb size={28} className="text-[#22C55E]" /></div>
                 <p className="text-base font-semibold text-gray-700 mb-1">Belum ada simulasi</p>
@@ -735,7 +794,7 @@ export default function Simulation() {
               </div>
             ) : (
               <div className="space-y-3">
-                {DUMMY_RIWAYAT.map((item) => (
+                {riwayat.map((item) => (
                   <RiwayatCard key={item.id} item={item} />
                 ))}
               </div>

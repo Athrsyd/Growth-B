@@ -35,7 +35,7 @@ class ChartController extends Controller
             return response()->json([
                 'message' => 'invalid field',
                 'errors'  => $validate->errors()
-            ]);
+            ], 422);
         }
 
         $data = DataHarian::where('bisnis_id', $bisnis->id)
@@ -115,7 +115,7 @@ class ChartController extends Controller
             return response()->json([
                 'message' => 'invalid field',
                 'errors'  => $validate->errors()
-            ]);
+            ], 422);
         }
 
         $data = DataHarian::where('bisnis_id', $bisnis->id)
@@ -182,7 +182,7 @@ class ChartController extends Controller
             return response()->json([
                 'message' => 'invalid field',
                 'errors'  => $validate->errors()
-            ]);
+            ], 422);
         }
 
         $limit = $request->input('limit', 5);
@@ -190,12 +190,12 @@ class ChartController extends Controller
         // Hitung frekuensi productProduct jadi terlaris dalam periode
         $topProducts = DataHarian::where('bisnis_id', $bisnis->id)
             ->periodeEvaluasi($request->dari, $request->sampai)
-            ->whereNotNull('productProduct_terlaris_id')
-            ->selectRaw('productProduct_terlaris_id, COUNT(*) as jumlah_hari')
-            ->groupBy('productProduct_terlaris_id')
+            ->whereNotNull('produk_terlaris_id')
+            ->selectRaw('produk_terlaris_id, COUNT(*) as jumlah_hari')
+            ->groupBy('produk_terlaris_id')
             ->orderByDesc('jumlah_hari')
             ->limit($limit)
-            ->with('productProductTerlaris:id,productProduct_nama,productProduct_harga')
+            ->with('produkTerlaris:id,produk_nama,produk_harga')
             ->get();
 
         $labels       = [];
@@ -203,9 +203,9 @@ class ChartController extends Controller
         $hargaProduct  = [];
 
         foreach ($topProducts as $item) {
-            $labels[]      = $item->productProductTerlaris?->productProduct_nama ?? 'Product Dihapus';
+            $labels[]      = $item->produkTerlaris?->produk_nama ?? 'Product Dihapus';
             $jumlahHari[]  = (int) $item->jumlah_hari;
-            $hargaProduct[] = (float) ($item->productProductTerlaris?->productProduct_harga ?? 0);
+            $hargaProduct[] = (float) ($item->produkTerlaris?->produk_harga ?? 0);
         }
 
         $result = [
@@ -218,8 +218,8 @@ class ChartController extends Controller
                 ],
             ],
             'detail' => $topProducts->map(fn($item) => [
-                'productProduct_nama'        => $item->productProductTerlaris?->productProduct_nama ?? 'Product Dihapus',
-                'productProduct_harga'       => $item->productProductTerlaris?->productProduct_harga ?? 0,
+                'produk_nama'        => $item->produkTerlaris?->produk_nama ?? 'Product Dihapus',
+                'produk_harga'       => $item->produkTerlaris?->produk_harga ?? 0,
                 'jumlah_hari_terlaris' => (int) $item->jumlah_hari,
             ])->values(),
         ];
@@ -252,7 +252,7 @@ class ChartController extends Controller
             return response()->json([
                 'message' => 'invalid field',
                 'errors'  => $validate->errors()
-            ]);
+            ], 422);
         }
 
         $limit   = $request->input('limit', 5);
@@ -291,11 +291,11 @@ class ChartController extends Controller
 
         // --- Top Product ---
         $topProducts = $allData
-            ->whereNotNull('productProduct_terlaris_id')
-            ->groupBy('productProduct_terlaris_id')
+            ->whereNotNull('produk_terlaris_id')
+            ->groupBy('produk_terlaris_id')
             ->map(fn($group) => [
-                'productProduct_nama'          => $group->first()->productProductTerlaris?->productProduct_nama ?? 'Product Dihapus',
-                'productProduct_harga'         => (float) ($group->first()->productProductTerlaris?->productProduct_harga ?? 0),
+                'produk_nama'          => $group->first()->produkTerlaris?->produk_nama ?? 'Product Dihapus',
+                'produk_harga'         => (float) ($group->first()->produkTerlaris?->produk_harga ?? 0),
                 'jumlah_hari_terlaris' => $group->count(),
             ])
             ->sortByDesc('jumlah_hari_terlaris')
@@ -328,7 +328,7 @@ class ChartController extends Controller
                 ],
             ],
             'top_product' => [
-                'labels'   => $topProducts->pluck('productProduct_nama')->values()->all(),
+                'labels'   => $topProducts->pluck('produk_nama')->values()->all(),
                 'datasets' => [
                     ['key' => 'jumlah_hari_terlaris', 'label' => 'Hari Jadi Terlaris', 'data' => $topProducts->pluck('jumlah_hari_terlaris')->values()->all()],
                 ],

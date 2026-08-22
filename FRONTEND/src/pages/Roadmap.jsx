@@ -1,54 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
+import api from "../api/axios";
 import { LuZap, LuTarget, LuMap, LuCheck, LuCalendar } from "react-icons/lu";
-
-// ─── Data sementara ───────────────────────────────────────────
-const DUMMY_ROADMAP = [
-  {
-    id: 1,
-    judul: "Capai omset Rp 50 juta",
-    deskripsi: "Fokus naikkan penjualan produk unggulan dan tambah promosi di media sosial setiap minggu.",
-    target_metrik: "omset",
-    target_nilai: 50000000,
-    target_tanggal: "2024-09-30",
-    status: "aktif",
-  },
-  {
-    id: 2,
-    judul: "Tambah 100 member baru",
-    deskripsi: "Aktifkan QR code di meja dan kasir, dorong pelanggan untuk scan setiap kunjungan.",
-    target_metrik: "jumlah_pembeli",
-    target_nilai: 100,
-    target_tanggal: "2024-08-15",
-    status: "tercapai",
-  },
-  {
-    id: 3,
-    judul: "Kurangi biaya bahan baku 15%",
-    deskripsi: "Negosiasi ulang harga dengan supplier langganan dan cari alternatif supplier lokal.",
-    target_metrik: "pengeluaran",
-    target_nilai: null,
-    target_tanggal: "2024-10-31",
-    status: "aktif",
-  },
-  {
-    id: 4,
-    judul: "Rekrut 1 pegawai tambahan",
-    deskripsi: "Buka lowongan kasir paruh waktu untuk weekend agar bisa fokus ke pengelolaan bisnis.",
-    target_metrik: null,
-    target_nilai: null,
-    target_tanggal: "2024-11-01",
-    status: "dibatalkan",
-  },
-  {
-    id: 5,
-    judul: "Luncurkan menu paket hemat",
-    deskripsi: "Buat bundling Nasi Ayam + Es Teh dengan harga spesial untuk dorong nilai transaksi.",
-    target_metrik: "omset",
-    target_nilai: 60000000,
-    target_tanggal: "2024-12-31",
-    status: "aktif",
-  },
-];
 
 const METRIK_LABELS = {
   omset: "Target Omset",
@@ -103,9 +55,10 @@ const sortByDate = list => [...list].sort((a, b) => {
 // ─── Add Modal ────────────────────────────────────────────────
 const EMPTY = { judul: "", deskripsi: "", target_metrik: "", target_nilai: "", target_tanggal: "" };
 
-function AddModal({ onClose, onSave }) {
+function AddModal({ onClose, onSave, saving }) {
   const [form, setForm] = useState(EMPTY);
   const [errors, setErrors] = useState({});
+  const [globalErr, setGlobalErr] = useState("");
 
   const set = (k, v) => {
     setForm(f => ({ ...f, [k]: v }));
@@ -120,10 +73,22 @@ function AddModal({ onClose, onSave }) {
     return !Object.keys(e).length;
   };
 
-  const submit = () => {
+  const submit = async () => {
     if (!validate()) return;
-    onSave({ ...form, id: Date.now(), status: "aktif", target_nilai: form.target_nilai ? Number(form.target_nilai) : null });
-    onClose();
+    setGlobalErr("");
+    try {
+      await onSave({
+        judul: form.judul,
+        deskripsi: form.deskripsi || null,
+        target_metrik: form.target_metrik || null,
+        target_nilai: form.target_nilai ? Number(form.target_nilai) : null,
+        target_tanggal: form.target_tanggal || null,
+        status: "aktif",
+      });
+      onClose();
+    } catch (err) {
+      setGlobalErr(err.response?.data?.message ?? "Gagal menyimpan goal");
+    }
   };
 
   return (
@@ -222,13 +187,16 @@ function AddModal({ onClose, onSave }) {
         </div>
 
         {/* Footer */}
-        <div className="px-5 py-4 border-t border-gray-100 flex gap-3">
-          <button onClick={onClose} className="flex-1 py-2.5 rounded-xl text-sm font-medium text-gray-500 border border-gray-200 hover:bg-gray-50 transition-all">
-            Batal
-          </button>
-          <button onClick={submit} className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-[#22C55E] text-white hover:bg-[#15803D] active:scale-95 transition-all">
-            Simpan Goal
-          </button>
+        <div className="px-5 pb-4">
+          {globalErr && <p className="text-xs text-red-500 mb-2">{globalErr}</p>}
+          <div className="flex gap-3 pt-3 border-t border-gray-100">
+            <button onClick={onClose} disabled={saving} className="flex-1 py-2.5 rounded-xl text-sm font-medium text-gray-500 border border-gray-200 hover:bg-gray-50 transition-all disabled:opacity-50">
+              Batal
+            </button>
+            <button onClick={submit} disabled={saving} className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-[#22C55E] text-white hover:bg-[#15803D] active:scale-95 transition-all disabled:opacity-60">
+              {saving ? "Menyimpan…" : "Simpan Goal"}
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -452,21 +420,58 @@ function EmptyState({ onAdd }) {
 
 // ─── Main ─────────────────────────────────────────────────────
 export default function Roadmap() {
-  const [roadmaps, setRoadmaps] = useState(DUMMY_ROADMAP);
+  const [items, setItems]     = useState([])
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving]   = useState(false)
+
+  const fetchRoadmap = useCallback(async () => {
+    setLoading(true)
+    try {
+      const { data } = await api.get('/roadmap?per_page=50')
+      setItems(data.data ?? [])
+    } catch { /* ignore */ }
+    finally { setLoading(false) }
+  }, [])
+
+  useEffect(() => { fetchRoadmap() }, [fetchRoadmap])
+
+  const apiCreate = async (payload) => {
+    setSaving(true)
+    try {
+      const { data } = await api.post('/roadmap', payload)
+      setItems(prev => [data.data, ...prev])
+    } finally { setSaving(false) }
+  }
+
+  const apiUpdate = async (id, payload) => {
+    setSaving(true)
+    try {
+      const { data } = await api.put(`/roadmap/${id}`, payload)
+      setItems(prev => prev.map(r => r.id === id ? data.data : r))
+    } finally { setSaving(false) }
+  }
+
+  const apiDelete = async (id) => {
+    try {
+      await api.delete(`/roadmap/${id}`)
+      setItems(prev => prev.filter(r => r.id !== id))
+    } catch { /* ignore */ }
+  }
+
   const [showModal, setShowModal] = useState(false);
   const [filter, setFilter]      = useState("semua");
 
   const handleMarkDone = (id) => {
-    setRoadmaps(prev => prev.map(r => r.id === id ? { ...r, status: "tercapai" } : r));
+    apiUpdate(id, { status: "tercapai" })
   };
 
-  const sorted   = sortByDate(roadmaps);
+  const sorted   = sortByDate(items);
   const filtered = filter === "semua" ? sorted : sorted.filter(r => r.status === filter);
   const counts   = {
-    semua:      roadmaps.length,
-    aktif:      roadmaps.filter(r => r.status === "aktif").length,
-    tercapai:   roadmaps.filter(r => r.status === "tercapai").length,
-    dibatalkan: roadmaps.filter(r => r.status === "dibatalkan").length,
+    semua:      items.length,
+    aktif:      items.filter(r => r.status === "aktif").length,
+    tercapai:   items.filter(r => r.status === "tercapai").length,
+    dibatalkan: items.filter(r => r.status === "dibatalkan").length,
   };
 
   const FILTERS = [
@@ -521,7 +526,11 @@ export default function Roadmap() {
 
       {/* ── Body ── */}
       <div className="pt-6 pb-6 px-4 lg:px-0">
-        {filtered.length === 0 ? (
+        {loading ? (
+          <div className="flex items-center justify-center py-24">
+            <svg className="w-6 h-6 animate-spin text-[#22C55E]" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+          </div>
+        ) : filtered.length === 0 ? (
           <EmptyState onAdd={() => setShowModal(true)} />
         ) : (
           <>
@@ -551,7 +560,8 @@ export default function Roadmap() {
       {showModal && (
         <AddModal
           onClose={() => setShowModal(false)}
-          onSave={item => setRoadmaps(p => [...p, item])}
+          onSave={apiCreate}
+          saving={saving}
         />
       )}
     </>

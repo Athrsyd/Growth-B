@@ -1,5 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import api from '../api/axios'
+import { useAuth } from '../context/AuthContext'
 import {
   LuTrendingUp, LuTrendingDown,
   LuArrowRight, LuBrain, LuTarget,
@@ -11,46 +13,13 @@ import {
   ResponsiveContainer, CartesianGrid,
 } from 'recharts'
 
-// ── Dummy data ──────────────────────────────────────────────────
-const BISNIS = { nama: 'Warung Makan Bu Sari', user: 'Bu Sari' }
-
-const KPI = [
-  { label: 'Pendapatan',  value: 'Rp 4.250.000', raw: 4250000, delta: 12.4,  icon: LuWallet,      color: '#22C55E' },
-  { label: 'Pengeluaran', value: 'Rp 1.820.000', raw: 1820000, delta: -3.1,  icon: LuShoppingBag, color: '#F59E0B' },
-  { label: 'Laba Bersih', value: 'Rp 2.430.000', raw: 2430000, delta: 18.7,  icon: LuTrendingUp,  color: '#3B82F6' },
-  { label: 'Pelanggan',   value: '142',           raw: 142,    delta: 7.2,   icon: LuUsers,       color: '#A855F7' },
+// ── Icon map untuk KPI ──────────────────────────────────────────
+const KPI_CONFIG = [
+  { label: 'Pendapatan',  key: 'pendapatan',  icon: LuWallet,      color: '#22C55E', fmt: true },
+  { label: 'Pengeluaran', key: 'pengeluaran', icon: LuShoppingBag, color: '#F59E0B', fmt: true },
+  { label: 'Laba Bersih', key: 'laba',        icon: LuTrendingUp,  color: '#3B82F6', fmt: true },
+  { label: 'Pelanggan',   key: 'pelanggan',   icon: LuUsers,       color: '#A855F7', fmt: false },
 ]
-
-const REVENUE_TREND = [
-  { day: '9 Jul',  rev: 580000,  exp: 240000 },
-  { day: '10 Jul', rev: 620000,  exp: 260000 },
-  { day: '11 Jul', rev: 490000,  exp: 210000 },
-  { day: '12 Jul', rev: 710000,  exp: 290000 },
-  { day: '13 Jul', rev: 650000,  exp: 270000 },
-  { day: '14 Jul', rev: 780000,  exp: 310000 },
-  { day: '15 Jul', rev: 420000,  exp: 240000 },
-]
-
-const TOP_PRODUK = [
-  { nama: 'Nasi Ayam Goreng', qty: 48, pct: 100 },
-  { nama: 'Es Teh Manis',     qty: 39, pct: 81  },
-  { nama: 'Nasi Capcay',      qty: 27, pct: 56  },
-  { nama: 'Jus Alpukat',      qty: 18, pct: 38  },
-]
-
-const AI_INSIGHT = {
-  kondisi: 'Bisnis kamu sedang tumbuh dengan baik.',
-  insight: 'Pendapatan naik 12.4% dibanding pekan lalu. Nasi Ayam Goreng tetap menjadi produk andalan dengan 48 porsi terjual.',
-  rekomendasi: 'Pertimbangkan bundling Nasi Ayam + Es Teh untuk meningkatkan average order value.',
-  confidence: 87,
-}
-
-const ROADMAP = {
-  judul: 'Capai Omset Rp 50 Juta',
-  progress: 68,
-  deadline: '30 Sep 2024',
-  milestone: 'Konsistensi harian ≥ Rp 1,5 juta',
-}
 
 // ── Helpers ─────────────────────────────────────────────────────
 const fmt = (v) => new Intl.NumberFormat('id-ID', { notation: 'compact', compactDisplay: 'short' }).format(v)
@@ -72,7 +41,7 @@ function DeltaBadge({ delta }) {
 }
 
 // ── Greeting ────────────────────────────────────────────────────
-function Greeting() {
+function Greeting({ userName, nama }) {
   const hour = new Date().getHours()
   const salam = hour < 11 ? 'Selamat pagi' : hour < 15 ? 'Selamat siang' : hour < 19 ? 'Selamat sore' : 'Selamat malam'
   const tanggal = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' })
@@ -80,15 +49,15 @@ function Greeting() {
     <div style={{ marginBottom: 20 }}>
       <p style={{ fontSize: 13, color: 'var(--color-text-muted)', marginBottom: 2 }}>{tanggal}</p>
       <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3, marginBottom: 2 }}>
-        {salam}, {BISNIS.user}
+        {salam}, {userName}
       </h1>
-      <p style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>{BISNIS.nama}</p>
+      <p style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>{nama}</p>
     </div>
   )
 }
 
 // ── Quick Action ─────────────────────────────────────────────────
-function QuickAction() {
+function QuickAction({ inputHariIni }) {
   const navigate = useNavigate()
   return (
     <div
@@ -125,7 +94,7 @@ function QuickAction() {
         </div>
         <div>
           <p style={{ fontSize: 14, fontWeight: 700, color: 'white' }}>Input Hari Ini</p>
-          <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.75)' }}>Belum ada data untuk hari ini</p>
+          <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.75)' }}>{inputHariIni ? 'Data hari ini sudah diisi' : 'Belum ada data untuk hari ini'}</p>
         </div>
       </div>
       <LuArrowRight size={18} color="rgba(255,255,255,0.85)" />
@@ -134,7 +103,7 @@ function QuickAction() {
 }
 
 // ── AI Insight Card ──────────────────────────────────────────────
-function AIInsightCard() {
+function AIInsightCard({ aiInsight }) {
   return (
     <div style={{
       background: 'var(--color-surface)',
@@ -166,7 +135,7 @@ function AIInsightCard() {
         </div>
         <div>
           <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-primary-dark)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>AI Business Insight</p>
-          <p style={{ fontSize: 11, color: 'var(--color-text-muted)' }}>Kepercayaan {AI_INSIGHT.confidence}%</p>
+          <p style={{ fontSize: 11, color: 'var(--color-text-muted)' }}>Kepercayaan {aiInsight?.confidence ? aiInsight.confidence + '%' : '—'}</p>
         </div>
         <div style={{ marginLeft: 'auto' }}>
           <span style={{
@@ -182,10 +151,10 @@ function AIInsightCard() {
         </div>
       </div>
       <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)', marginBottom: 6 }}>
-        {AI_INSIGHT.kondisi}
+        {aiInsight?.kondisi ?? ''}
       </p>
       <p style={{ fontSize: 13, color: 'var(--color-text-secondary)', lineHeight: 1.6, marginBottom: 12 }}>
-        {AI_INSIGHT.insight}
+        {aiInsight?.insight ?? 'Belum ada analisis AI. Generate analisis dari halaman Analisis.'}
       </p>
       <div style={{
         background: 'var(--color-primary-muted)',
@@ -196,7 +165,7 @@ function AIInsightCard() {
         <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-primary-dark)', marginBottom: 2, display: 'flex', alignItems: 'center', gap: 4 }}>
           <LuLightbulb size={12} /> Rekomendasi
         </p>
-        <p style={{ fontSize: 13, color: 'var(--color-text)', lineHeight: 1.5 }}>{AI_INSIGHT.rekomendasi}</p>
+        <p style={{ fontSize: 13, color: 'var(--color-text)', lineHeight: 1.5 }}>{aiInsight?.rekomendasi ?? 'Lengkapi data harian untuk mendapatkan rekomendasi.'}</p>
       </div>
     </div>
   )
@@ -268,7 +237,7 @@ const CustomTooltip = ({ active, payload, label }) => {
   )
 }
 
-function RevenueChart() {
+function RevenueChart({ revenueTrend }) {
   return (
     <div style={{
       background: 'var(--color-surface)',
@@ -306,7 +275,7 @@ function RevenueChart() {
         </div>
       </div>
       <ResponsiveContainer width="100%" height={160}>
-        <AreaChart data={REVENUE_TREND} margin={{ top: 4, right: 0, left: -20, bottom: 0 }}>
+        <AreaChart data={revenueTrend} margin={{ top: 4, right: 0, left: -20, bottom: 0 }}>
           <defs>
             <linearGradient id="grev" x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%"  stopColor="#22C55E" stopOpacity={0.15} />
@@ -330,7 +299,7 @@ function RevenueChart() {
 }
 
 // ── Top Produk ───────────────────────────────────────────────────
-function TopProduk() {
+function TopProduk({ topProduk }) {
   return (
     <div style={{
       background: 'var(--color-surface)',
@@ -352,8 +321,9 @@ function TopProduk() {
       }}
     >
       <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', marginBottom: 14 }}>Produk Terlaris</p>
+      {topProduk.length === 0 && <p style={{ fontSize: 13, color: 'var(--color-text-muted)', textAlign: 'center', padding: '16px 0' }}>Belum ada data produk</p>}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {TOP_PRODUK.map((p, i) => (
+        {topProduk.map((p, i) => (
           <div key={p.nama}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 5 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -389,7 +359,7 @@ function TopProduk() {
 }
 
 // ── Roadmap Progress ─────────────────────────────────────────────
-function RoadmapProgress() {
+function RoadmapProgress({ roadmap }) {
   const navigate = useNavigate()
   return (
     <div
@@ -423,17 +393,17 @@ function RoadmapProgress() {
         </div>
         <LuChevronRight size={16} style={{ color: 'var(--color-text-muted)' }} />
       </div>
-      <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)', marginBottom: 4 }}>{ROADMAP.judul}</p>
-      <p style={{ fontSize: 12, color: 'var(--color-text-muted)', marginBottom: 12 }}>Deadline: {ROADMAP.deadline}</p>
+      <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)', marginBottom: 4 }}>{roadmap?.judul ?? 'Belum ada roadmap aktif'}</p>
+      <p style={{ fontSize: 12, color: 'var(--color-text-muted)', marginBottom: 12 }}>Deadline: {roadmap?.deadline ?? '—'}</p>
       <div style={{ marginBottom: 6 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-          <span style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>{ROADMAP.milestone}</span>
-          <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-primary-dark)' }}>{ROADMAP.progress}%</span>
+          <span style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>{roadmap?.milestone ?? '—'}</span>
+          <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-primary-dark)' }}>{roadmap?.progress ?? 0}%</span>
         </div>
         <div style={{ height: 6, background: 'var(--color-border-light)', borderRadius: 'var(--radius-pill)', overflow: 'hidden' }}>
           <div style={{
             height: '100%',
-            width: `${ROADMAP.progress}%`,
+            width: `${roadmap?.progress ?? 0}%`,
             background: 'var(--color-primary)',
             borderRadius: 'var(--radius-pill)',
           }} />
@@ -443,8 +413,99 @@ function RoadmapProgress() {
   )
 }
 
+// ── Helpers ─────────────────────────────────────────────────────
+function buildKPI(dashboard, member) {
+  const pend = dashboard?.datasets?.find(d => d.key === 'pendapatan')?.data ?? []
+  const peng = dashboard?.datasets?.find(d => d.key === 'pengeluaran')?.data ?? []
+  const totalPend = pend.reduce((s, v) => s + v, 0)
+  const totalPeng = peng.reduce((s, v) => s + v, 0)
+  return {
+    pendapatan: totalPend,
+    pengeluaran: totalPeng,
+    laba: totalPend - totalPeng,
+    pelanggan: member?.total ?? 0,
+  }
+}
+
 // ── Main ─────────────────────────────────────────────────────────
 export default function Home() {
+  const { user, bisnis } = useAuth()
+  const [dashboard, setDashboard] = useState(null)
+  const [topProduk, setTopProduk] = useState([])
+  const [revenueTrend, setRevenueTrend] = useState([])
+  const [aiInsight, setAiInsight]   = useState(null)
+  const [roadmap, setRoadmap]       = useState(null)
+  const [memberTotal, setMemberTotal] = useState(0)
+  const [inputHariIni, setInputHariIni] = useState(false)
+  const [loadingDash, setLoadingDash] = useState(true)
+
+  useEffect(() => {
+    const today = new Date()
+    const sampai = today.toISOString().slice(0, 10)
+    const dari = new Date(new Date().setDate(today.getDate() - 6)).toISOString().slice(0, 10)
+
+    Promise.all([
+      api.get(`/chart/revenue?dari=${dari}&sampai=${sampai}`).catch(() => null),
+      api.get(`/chart/top-product?dari=${dari}&sampai=${sampai}`).catch(() => null),
+      api.get('/member?per_page=1').catch(() => null),
+      api.get('/analisa/latest').catch(() => null),
+      api.get('/roadmap?per_page=1').catch(() => null),
+      api.get(`/data-harian?per_page=1`).catch(() => null),
+    ]).then(([rev, topP, cust, analisa, road, harian]) => {
+      if (rev?.data?.data) {
+        const d = rev.data.data
+        setDashboard(d)
+        const trend = (d.labels ?? []).map((label, i) => ({
+          day: label,
+          rev: d.datasets?.find(ds => ds.key === 'pendapatan')?.data?.[i] ?? 0,
+          exp: d.datasets?.find(ds => ds.key === 'pengeluaran')?.data?.[i] ?? 0,
+        }))
+        setRevenueTrend(trend)
+      }
+      if (topP?.data?.data?.datasets?.[0]?.data) {
+        const labels = topP.data.data.labels ?? []
+        const vals   = topP.data.data.datasets[0].data ?? []
+        const max    = Math.max(...vals, 1)
+        setTopProduk(labels.map((nama, i) => ({ nama, qty: vals[i], pct: Math.round((vals[i] / max) * 100) })))
+      }
+      setMemberTotal(cust?.data?.total ?? 0)
+      if (analisa?.data?.data) {
+        const { eval: ev, plan } = analisa.data.data
+        if (ev || plan) setAiInsight({ kondisi: '', insight: ev?.pesan ?? '', rekomendasi: plan?.pesan ?? '', confidence: null })
+      }
+      if (road?.data?.data?.length > 0) {
+        const r = road.data.data[0]
+        setRoadmap({
+          judul: r.judul,
+          progress: r.target_nilai ? Math.round(((r.progress ?? 0) / r.target_nilai) * 100) : 0,
+          deadline: r.target_tanggal,
+          milestone: r.target_metrik ?? '',
+        })
+      }
+      const today_ymd = new Date().toISOString().slice(0, 10)
+      const dataHarianList = harian?.data?.data ?? []
+      setInputHariIni(dataHarianList.some(d => d.tanggal === today_ymd))
+      setLoadingDash(false)
+    })
+  }, [])
+
+  const kpiValues = buildKPI(dashboard, { total: memberTotal })
+  const nama = bisnis?.bisnis_nama ?? 'Bisnis Kamu'
+  const userName = user?.name ?? user?.full_name ?? 'Kamu'
+
+  if (loadingDash) return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
+      <div style={{ textAlign: 'center' }}>
+        <svg className="spin" width={32} height={32} viewBox="0 0 24 24" fill="none" style={{ margin: '0 auto 12px' }}>
+          <circle cx="12" cy="12" r="10" stroke="var(--color-border)" strokeWidth="3" />
+          <path d="M12 2a10 10 0 0 1 10 10" stroke="var(--color-primary)" strokeWidth="3" strokeLinecap="round" />
+        </svg>
+        <p style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>Memuat dashboard…</p>
+      </div>
+      <style>{'.spin { animation: spin 0.8s linear infinite; } @keyframes spin { to { transform: rotate(360deg); } }'}</style>
+    </div>
+  )
+
   return (
     <>
       {/* ── Bento layout styles (desktop only) ── */}
@@ -477,7 +538,6 @@ export default function Home() {
             grid-template-rows: auto;
             gap: 16px;
           }
-          /* Greeting + QuickAction: full width */
           .bento-top-row {
             grid-column: 1 / -1;
             display: grid;
@@ -485,12 +545,10 @@ export default function Home() {
             align-items: center;
             gap: 16px;
           }
-          /* AI Insight: spans full row */
           .bento-ai {
             grid-column: 1 / 2;
             grid-row: 2 / 4;
           }
-          /* KPI: 2x2 grid on the right */
           .bento-kpi-wrap {
             grid-column: 2 / 3;
             grid-row: 2 / 3;
@@ -498,17 +556,14 @@ export default function Home() {
           .bento-kpi {
             grid-template-columns: repeat(2, 1fr);
           }
-          /* Roadmap: right side, below KPI */
           .bento-roadmap {
             grid-column: 2 / 3;
             grid-row: 3 / 4;
           }
-          /* Chart: full width */
           .bento-chart {
             grid-column: 1 / -1;
             grid-row: 4 / 5;
           }
-          /* Top produk: full width */
           .bento-produk {
             grid-column: 1 / -1;
             grid-row: 5 / 6;
@@ -521,35 +576,44 @@ export default function Home() {
 
           {/* ── Top row: Greeting + QuickAction ── */}
           <div className="bento-top-row" style={{ gridColumn: '1 / -1' }}>
-            <Greeting />
-            <QuickAction />
+            <Greeting userName={userName} nama={nama} />
+            <QuickAction inputHariIni={inputHariIni} />
           </div>
 
           {/* ── AI Insight ── */}
           <div className="bento-ai">
-            <AIInsightCard />
+            <AIInsightCard aiInsight={aiInsight} />
           </div>
 
           {/* ── KPI 2x2 ── */}
           <div className="bento-kpi-wrap">
             <div className="bento-kpi">
-              {KPI.map((k) => <KPICard key={k.label} k={k} />)}
+              {KPI_CONFIG.map((cfg) => {
+                const raw = kpiValues[cfg.key] ?? 0
+                const k = {
+                  ...cfg,
+                  value: cfg.fmt ? 'Rp ' + new Intl.NumberFormat('id-ID').format(raw) : String(raw),
+                  raw,
+                  delta: 0,
+                }
+                return <KPICard key={k.label} k={k} />
+              })}
             </div>
           </div>
 
           {/* ── Roadmap ── */}
           <div className="bento-roadmap">
-            <RoadmapProgress />
+            <RoadmapProgress roadmap={roadmap} />
           </div>
 
           {/* ── Chart (full width) ── */}
           <div className="bento-chart">
-            <RevenueChart />
+            <RevenueChart revenueTrend={revenueTrend} />
           </div>
 
           {/* ── Top Produk (full width) ── */}
           <div className="bento-produk" style={{ paddingBottom: 20 }}>
-            <TopProduk />
+            <TopProduk topProduk={topProduk} />
           </div>
 
         </div>

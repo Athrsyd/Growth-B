@@ -80,12 +80,19 @@ class MemberController extends Controller
             return response()->json([
                 'message' => 'invalid field',
                 'errors' => $validate->errors()
-            ]);
+            ], 422);
         }
 
         $member = Member::where('bisnis_id', $bisnis->id)
             ->where('member_phone', $request->member_phone)
             ->first();
+
+            $lastCheckin = $member ? $member->updated_at : null;
+
+            // minimmal 1 hari antara check-in sebelumnya dan check-in saat ini
+            if( $lastCheckin && now()->diffInDays($lastCheckin) < 1) {
+                return $this->error('Anda sudah melakukan check-in hari ini. Silakan coba lagi besok.', 429);
+            }
 
         if ($member) {
             $member->tambahKunjungan();
@@ -218,7 +225,7 @@ class MemberController extends Controller
             return response()->json([
                 'message' => 'invalid field',
                 'errors' => $validate->errors()
-            ]);
+            ], 422);
         }
 
         $bisnis->update(['reward_threshold' => $request->reward_threshold]);

@@ -60,7 +60,7 @@ class RoadmapController extends Controller
             return response()->json([
                 'message' => 'invalid field',
                 'errors' => $validate->errors()
-            ]);
+            ], 422);
         }
 
         $roadmap = Roadmap::create([
@@ -113,7 +113,7 @@ class RoadmapController extends Controller
             return response()->json([
                 'message' => 'invalid field',
                 'errors' => $validate->errors()
-            ]);
+            ], 422);
         }
 
         $roadmap->update(

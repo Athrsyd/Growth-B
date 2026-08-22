@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import axios from "axios";
+import api from "../api/axios";
 import { LuTrendingUp, LuTrendingDown, LuTrophy, LuUsers, LuCheck } from "react-icons/lu";
 
 function GoalIcon({ name }) {
@@ -11,7 +11,6 @@ function GoalIcon({ name }) {
 }
 
 // ─── Konstanta ────────────────────────────────────────────────
-const API = import.meta.env.VITE_API_URL ?? "http://localhost:8000/api";
 const TUJUAN_OPTIONS = [
   "menaikkan omset",
   "menambah pelanggan tetap",
@@ -20,13 +19,6 @@ const TUJUAN_OPTIONS = [
 ];
 const STEPS = ["Info Bisnis", "Jam & Tim", "Target", "Produk", "Selesai"];
 
-// ─── Helpers ──────────────────────────────────────────────────
-const token = () => localStorage.getItem("auth_token");
-const api = axios.create({ baseURL: API });
-api.interceptors.request.use((c) => {
-  c.headers.Authorization = `Bearer ${token()}`;
-  return c;
-});
 
 // ─── Sub-components ───────────────────────────────────────────
 function StepIndicator({ current, steps }) {
@@ -181,7 +173,7 @@ function StepInfoBisnis({ data, onChange, errors }) {
           type="date"
           value={data.bisnis_mulai}
           onChange={(e) => onChange("bisnis_mulai", e.target.value)}
-          error={errors.bisnis_mulai}
+          error={errors.bisnis_mulai} 
         />
       </Field>
 
@@ -691,7 +683,7 @@ export default function BisnisForm({ onFinish }) {
                 <div className="pt-6 mt-2 border-t border-gray-100">
                   <button
                     type="button"
-                    onClick={() => onFinish?.(bisnisResult)}
+                    onClick={() => { if (onFinish) onFinish(bisnisResult); else window.location.href = '/'; }}
                     className="w-full py-3 rounded-xl bg-[#22C55E] text-white text-sm font-semibold hover:bg-[#15803D] active:scale-95 transition-all"
                   >
                     Masuk ke Dashboard →

@@ -22,6 +22,7 @@ class Bisnis extends Model
         'target_market',
         'tujuan_bisnis',
         'QR_image_url',
+        'reward_threshold',
     ];
 
     protected $casts = [

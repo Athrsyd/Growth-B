@@ -110,7 +110,7 @@ class WhatIfController extends Controller
             return response()->json([
                 'message' => 'invalid field',
                 'errors' => $validate->errors()
-            ]);
+            ], 422);
         }
 
         // Routing ke handler berdasarkan tipe
@@ -138,7 +138,7 @@ class WhatIfController extends Controller
             return response()->json([
                 'message' => 'invalid field',
                 'errors' => $validate->errors()
-            ]);
+            ], 422);
         }
 
         $produk = Product::find($request->produk_id);
@@ -208,7 +208,7 @@ class WhatIfController extends Controller
             return response()->json([
                 'message' => 'invalid field',
                 'errors' => $validate->errors()
-            ]);
+            ], 422);
         }
 
         // Ambil rata-rata pengeluaran 14 hari terakhir sebagai konteks
@@ -248,7 +248,7 @@ class WhatIfController extends Controller
             return response()->json([
                 'message' => 'invalid field',
                 'errors' => $validate->errors()
-            ]);
+            ], 422);
         }
 
         // Hitung durasi operasional lama vs baru

@@ -24,7 +24,7 @@ class AuthController extends Controller
             return response()->json([
                 'message' => 'invalid field',
                 'errors' => $validate->errors()
-            ]);
+            ], 422);
         };
 
         $user = User::create($request->all());
@@ -37,7 +37,7 @@ class AuthController extends Controller
             'id' => $user->id,
             'token' => $token,
         ];
-        return $this->success("Registration successful", $data, 201);
+        return $this->success("Registration successful", ['data' => $data], 201);
     }
 
     public function login(Request $request)
@@ -51,7 +51,7 @@ class AuthController extends Controller
             return response()->json([
                 'message' => 'invalid field',
                 'errors' => $validate->errors()
-            ]);
+            ], 422);
         };
 
         $user = User::where('email', $request->email)->first();
@@ -69,7 +69,7 @@ class AuthController extends Controller
             'created_at' => $user->created_at,
             'token' => $token,
         ];
-        return $this->success("Login successful", $data, 201);
+        return $this->success("Login successful", ['data' => $data], 201);
     }
 
 
@@ -78,14 +78,14 @@ class AuthController extends Controller
         $token = PersonalAccessToken::findToken($request->bearerToken());
         $token->delete();
 
-        return $this->success("Logout successful",);
+        return $this->success("Logout successful", ['data' => null]);
     }
 
 
     public function me()
     {
         $user = Auth::user();
-        $bisnis = Bisnis::where('user_id', $user->id)->first() || null;
+        $bisnis = Bisnis::where('user_id', $user->id)->first();
 
         return response()->json([
             'data' => [

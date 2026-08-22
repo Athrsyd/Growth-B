@@ -70,7 +70,7 @@ class DataHarianController extends Controller
             return response()->json([
                 'message' => 'invalid field',
                 'errors'  => $validate->errors()
-            ]);
+            ], 422);
         }
 
         // Validasi produk terlaris milik bisnis ini
@@ -170,7 +170,7 @@ class DataHarianController extends Controller
             return response()->json([
                 'message' => 'invalid field',
                 'errors'  => $validate->errors()
-            ]);
+            ], 422);
         }
 
         DB::transaction(function () use ($request, $dataHarian) {
@@ -242,7 +242,7 @@ class DataHarianController extends Controller
             return response()->json([
                 'message' => 'invalid field',
                 'errors'  => $validate->errors()
-            ]);
+            ], 422);
         }
 
         $dataHarian = DataHarian::where('bisnis_id', $bisnis->id)
@@ -313,6 +313,7 @@ class DataHarianController extends Controller
             'pengeluaran'        => $item->pengeluaran,
             'laba'               => $item->laba,
             'jumlah_pembeli'     => $item->jumlah_pembeli,
+            'produk_terlaris_id' => $item->produk_terlaris_id,
             'produk_terlaris'    => $item->produkTerlaris?->produk_nama,
             'kendala'            => $item->kendala,
             'note'               => $item->note,

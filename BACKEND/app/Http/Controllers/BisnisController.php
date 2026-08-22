@@ -21,8 +21,8 @@ class BisnisController extends Controller
             'bisnis_nama' => 'string|required',
             'bisnis_tipe' => 'string|required|in:barang,jasa',
             'bisnis_mulai' => 'date|required|date_format:Y-m-d',
-            'bisnis_buka' => 'time|required',
-            'bisnis_tutup' => 'time|required',
+            'bisnis_buka' => 'required|date_format:H:i',
+            'bisnis_tutup' => 'required|date_format:H:i',
             'jumlah_pegawai' => 'integer|required|min:1|nullable',
             'target_market' => 'string|required',
             'tujuan_bisnis' => 'required',
@@ -32,7 +32,7 @@ class BisnisController extends Controller
             return response()->json([
                 'message' => 'invalid field',
                 'errors' => $validate->errors()
-            ]);
+            ], 422);
         };
 
         $bisnis = Bisnis::create([
@@ -46,14 +46,16 @@ class BisnisController extends Controller
         $bisnis->save();
 
         $data = [
-            'bisnis_nama' => $bisnis->bisnis_nama,
-            'bisnis_tipe' => $bisnis->bisnis_tipe,
-            'bisnis_mulai' => $bisnis->bisnis_mulai,
-            'bisnis_buka' => $bisnis->bisnis_buka,
-            'bisnis_tutup' => $bisnis->bisnis_tutup,
+            'id'             => $bisnis->id,
+            'bisnis_nama'    => $bisnis->bisnis_nama,
+            'bisnis_tipe'    => $bisnis->bisnis_tipe,
+            'bisnis_mulai'   => $bisnis->bisnis_mulai,
+            'bisnis_buka'    => $bisnis->bisnis_buka,
+            'bisnis_tutup'   => $bisnis->bisnis_tutup,
             'jumlah_pegawai' => $bisnis->jumlah_pegawai,
-            'target_market' => $bisnis->target_market,
-            'tujuan_bisnis' => $bisnis->tujuan_bisnis,
+            'target_market'  => $bisnis->target_market,
+            'tujuan_bisnis'  => $bisnis->tujuan_bisnis,
+            'member_token'   => $bisnis->member_token,
         ];
 
         return $this->success('UMKM berhasil terdaftar', ['data' => $data]);
@@ -67,6 +69,11 @@ class BisnisController extends Controller
         if (!$bisnis) {
             return $this->error('data tidak di temukan ', 404);
         }
+
+        if ($bisnis->user_id !== Auth::user()->id) {
+            return $this->error('Akses Dilarang', 403);
+        }
+
         $pathWeb = "http://localhost:5173/input-member/$token";
 
         $svg = QrCode::format('svg')
@@ -87,24 +94,56 @@ class BisnisController extends Controller
         ]);
     }
 
+    /**
+     * Sajikan konten SVG QR langsung lewat Laravel (bukan file statis /storage),
+     * supaya middleware CORS bawaan Laravel (config/cors.php) ikut berlaku.
+     * File statis di /storage disajikan langsung oleh web server dan tidak pernah
+     * melewati Laravel, sehingga tidak pernah dapat header Access-Control-Allow-Origin.
+     */
+    public function qrImage(string $token)
+    {
+        $bisnis = Bisnis::where('member_token', $token)->first();
+
+        if (!$bisnis) {
+            return $this->error('data tidak di temukan ', 404);
+        }
+
+        if ($bisnis->user_id !== Auth::user()->id) {
+            return $this->error('Akses Dilarang', 403);
+        }
+
+        $filename = "qr/bisnis_{$bisnis->id}.svg";
+
+        if (!Storage::disk('public')->exists($filename)) {
+            return $this->error('QR belum digenerate, panggil endpoint generate terlebih dahulu', 404);
+        }
+
+        $svg = Storage::disk('public')->get($filename);
+
+        return response($svg, 200)
+            ->header('Content-Type', 'image/svg+xml')
+            ->header('Cache-Control', 'no-store');
+    }
+
     public function update(Request $request, string $id)
     {
         $bisnis = Bisnis::where('id', $id)->first();
         $userId = Auth::user()->id;
-        if ($bisnis->user_id !== $userId) {
-            return $this->error('Akses Dilarang', 403);
-        }
 
         if (!$bisnis) {
             return $this->error('data tidak di temukan ', 404);
+        }
+
+        if ($bisnis->user_id !== $userId) {
+            return $this->error('Akses Dilarang', 403);
         }
 
         $validate = Validator::make($request->all(), [
             'bisnis_nama' => 'string|required',
             'bisnis_tipe' => 'string|required|in:barang,jasa',
             'bisnis_mulai' => 'date|required|date_format:Y-m-d',
-            'bisnis_buka' => 'time|required',
-            'bisnis_tutup' => 'time|required',
+            'bisnis_buka' => 'required|date_format:H:i',
+            'bisnis_tutup' => 'required|date_format:H:i',
             'jumlah_pegawai' => 'integer|required|min:1|nullable',
             'target_market' => 'string|required',
             'tujuan_bisnis' => 'required',
@@ -114,7 +153,7 @@ class BisnisController extends Controller
             return response()->json([
                 'message' => 'invalid field',
                 'errors' => $validate->errors()
-            ]);
+            ], 422);
         };
 
         $bisnis->update([
@@ -123,14 +162,17 @@ class BisnisController extends Controller
         ]);
 
         $data = [
-            'bisnis_nama' => $bisnis->bisnis_nama,
-            'bisnis_tipe' => $bisnis->bisnis_tipe,
-            'bisnis_mulai' => $bisnis->bisnis_mulai,
-            'bisnis_buka' => $bisnis->bisnis_buka,
-            'bisnis_tutup' => $bisnis->bisnis_tutup,
-            'jumlah_pegawai' => $bisnis->jumlah_pegawai,
-            'target_market' => $bisnis->target_market,
-            'tujuan_bisnis' => $bisnis->tujuan_bisnis,
+            'id'               => $bisnis->id,
+            'bisnis_nama'      => $bisnis->bisnis_nama,
+            'bisnis_tipe'      => $bisnis->bisnis_tipe,
+            'bisnis_mulai'     => $bisnis->bisnis_mulai,
+            'bisnis_buka'      => $bisnis->bisnis_buka,
+            'bisnis_tutup'     => $bisnis->bisnis_tutup,
+            'jumlah_pegawai'   => $bisnis->jumlah_pegawai,
+            'target_market'    => $bisnis->target_market,
+            'tujuan_bisnis'    => $bisnis->tujuan_bisnis,
+            'reward_threshold' => $bisnis->reward_threshold,
+            'member_token'     => $bisnis->member_token,
         ];
 
         return $this->success('UMKM berhasil di edit', ['data' => $data]);
@@ -151,5 +193,4 @@ class BisnisController extends Controller
 
         return $this->success('data bisnis didapatkan', ['data' => $bisnis]);
     }
-
 }

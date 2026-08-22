@@ -1,13 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
+import api from "../api/axios";
 import { LuStore, LuGift, LuStar, LuPartyPopper, LuUser } from "react-icons/lu";
 import templateImg from "../assets/template_qr.png";
-
-// ─── Dummy response dari BE setelah checkin ───────────────────
-// Nanti diganti dengan axios.post(`/api/member/checkin/${token}`, { member_phone })
-const DUMMY_BISNIS = {
-  bisnis_nama: "Warung Makan Bu Sari",
-  reward_threshold: 10,
-};
 
 // ─── Helpers ──────────────────────────────────────────────────
 function formatPhone(val) {
@@ -25,9 +20,10 @@ function rawPhone(formatted) {
 
 // ─── State machine: idle → loading → success → idle ──────────
 // ─── Page ─────────────────────────────────────────────────────
-export default function FormMember({ token }) {
-  // import { useParams } from "react-router-dom";
-  // const { token } = useParams();
+export default function FormMember() {
+  const { token } = useParams();
+  const [bisnisNama, setBisnisNama] = useState("");
+  const [tokenValid, setTokenValid] = useState(true);
   const [phone, setPhone] = useState("");
   const [error, setError] = useState("");
   const [status, setStatus] = useState("idle"); // idle | loading | success
@@ -37,6 +33,14 @@ export default function FormMember({ token }) {
     setError("");
     setPhone(formatPhone(e.target.value));
   };
+
+  // Scan token saat mount → ambil nama bisnis
+  useEffect(() => {
+    if (!token) return;
+    api.get(`/member/scan/${token}`)
+      .then(({ data }) => setBisnisNama(data.data.bisnis_nama ?? ""))
+      .catch(() => setTokenValid(false));
+  }, [token]);
 
   const validate = () => {
     const digits = rawPhone(phone);
@@ -51,29 +55,17 @@ export default function FormMember({ token }) {
 
     const err = validate();
     if (err) { setError(err); return; }
+    setError("");
 
     setStatus("loading");
     try {
-      // ── Ganti blok ini dengan API call saat integrasi ──
-      // const res = await axios.post(`/api/member/checkin/${token}`, {
-      //   member_phone: rawPhone(phone),
-      // });
-      // setResult(res.data.data);
-
-      // Dummy simulasi response BE
-      await new Promise(r => setTimeout(r, 1200));
-      setResult({
+      const res = await api.post(`/member/checkin/${token}`, {
         member_phone: rawPhone(phone),
-        member_count: 5,
-        reward: {
-          is_eligible: false,
-          kunjungan_saat_ini: 5,
-          kunjungan_dibutuhkan: DUMMY_BISNIS.reward_threshold,
-        },
       });
+      setResult(res.data.data);
       setStatus("success");
-    } catch {
-      setError("Terjadi kesalahan. Coba lagi.");
+    } catch (error) {
+      setError(error.response?.data?.message || "Terjadi kesalahan. Coba lagi.");
       setStatus("idle");
     }
   };
@@ -85,27 +77,32 @@ export default function FormMember({ token }) {
     setStatus("idle");
   };
 
-  const progress = result
+  const progress = result?.reward
     ? Math.min((result.reward.kunjungan_saat_ini / result.reward.kunjungan_dibutuhkan) * 100, 100)
     : 0;
 
   // ── Render ────────────────────────────────────────────────
+  if (!tokenValid) return (
+    <div className="min-h-screen bg-[#F0FDF4] flex items-center justify-center p-6">
+      <div className="text-center">
+        <p className="text-lg font-bold text-gray-700 mb-2">QR tidak valid</p>
+        <p className="text-sm text-gray-400">Link ini sudah kedaluwarsa atau tidak ditemukan.</p>
+      </div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-linear-to-br from-[#F0FDF4] via-white to-white flex flex-col">
 
       {/* ── Header branding ── */}
-      <div className="flex items-center justify-between px-5 pt-10 pb-6">
-        <div>
+      <div className="flex items-center flex-row-reverse justify-between px-8 pt-10 pb-6">
+        <div className="flex flex-col items-end">
           <p className="text-xs font-bold text-[#16A34A] tracking-widest uppercase">Growth-B</p>
           <p className="text-xs text-gray-400 mt-0.5">Membership System</p>
         </div>
         <div className="w-9 h-9">
           {/* Logo B */}
-          <svg viewBox="0 0 60 60" fill="none" className="w-full h-full">
-            <path d="M12 8 L12 52 L36 52 Q50 52 50 40 Q50 32 40 30 Q50 28 50 18 Q50 8 36 8 Z" fill="#16a34a" opacity="0.9" />
-            <circle cx="50" cy="10" r="6" fill="#22c55e" />
-            <line x1="50" y1="10" x2="58" y2="4" stroke="#22c55e" strokeWidth="2" />
-          </svg>
+          <img src="/logo.svg" alt="" />
         </div>
       </div>
 
@@ -136,7 +133,7 @@ export default function FormMember({ token }) {
                 <p className="text-sm text-gray-400 mt-2 leading-relaxed">
                   Masukkan nomor HP kamu untuk<br />mencatat kunjungan hari ini
                 </p>
-                <p className="text-sm font-semibold text-[#16A34A] mt-1">{DUMMY_BISNIS.bisnis_nama}</p>
+                <p className="text-sm font-semibold text-[#16A34A] mt-1">{bisnisNama}</p>
               </div>
 
               {/* Input nomor HP */}
@@ -144,8 +141,8 @@ export default function FormMember({ token }) {
                 <div className={`flex items-center gap-3 bg-white border-2 rounded-2xl px-4 py-3.5 transition-all shadow-sm ${error ? "border-red-300" : "border-gray-200 focus-within:border-[#22C55E] focus-within:shadow-[#DCFCE7] focus-within:shadow-md"
                   }`}>
                   {/* Flag + kode negara */}
-                  <div className="flex items-center gap-1.5 flex-shrink-0 border-r border-gray-100 pr-3">
-                    <span className="text-lg">🇮🇩</span>
+                  <div className="flex items-center gap-1.5 shrink-0 border-r border-gray-100 pr-3">
+                    <span className="text-xs font-black text-[#16A34A] bg-[#F0FDF4] border border-[#DCFCE7] rounded px-1.5 py-0.5">ID</span>
                     <span className="text-sm font-semibold text-gray-500">+62</span>
                   </div>
                   <input
@@ -160,7 +157,7 @@ export default function FormMember({ token }) {
                   />
                   {phone && (
                     <button onClick={() => { setPhone(""); setError(""); }}
-                      className="text-gray-300 hover:text-gray-500 transition-colors flex-shrink-0">
+                      className="text-gray-300 hover:text-gray-500 transition-colors shrink-0">
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                       </svg>
@@ -169,7 +166,7 @@ export default function FormMember({ token }) {
                 </div>
                 {error && (
                   <p className="mt-2 text-xs text-red-500 font-medium flex items-center gap-1.5 px-1">
-                    <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                     </svg>
                     {error}
@@ -181,7 +178,7 @@ export default function FormMember({ token }) {
               <button
                 onClick={handleSubmit}
                 disabled={status === "loading"}
-                className="w-full py-4 rounded-2xl bg-[#F0FDF4]0 text-white text-sm font-bold shadow-sm shadow-[#BBF7D0] hover:bg-[#15803D] active:scale-95 transition-all disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-1"
+                className="w-full py-4 rounded-2xl bg-[#22C55E] text-white text-sm font-bold shadow-sm shadow-[#BBF7D0] hover:bg-[#15803D] active:scale-95 transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-1"
               >
                 {status === "loading" ? (
                   <>
@@ -215,7 +212,7 @@ export default function FormMember({ token }) {
                 <div className="relative">
                   {/* Lingkaran luar pulse */}
                   <div className="absolute inset-0 rounded-full bg-[#DCFCE7] animate-ping opacity-40 scale-110" />
-                  <div className="w-24 h-24 rounded-full bg-[#F0FDF4]0 flex items-center justify-center shadow-lg shadow-[#BBF7D0] relative">
+                  <div className="w-24 h-24 rounded-full bg-[#22C55E] flex items-center justify-center shadow-lg shadow-[#BBF7D0] relative">
                     <svg className="w-12 h-12 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
@@ -229,7 +226,7 @@ export default function FormMember({ token }) {
                 <p className="text-sm text-gray-400 mt-2">
                   Terima kasih sudah berkunjung ke
                 </p>
-                <p className="text-sm font-bold text-[#16A34A] mt-0.5">{DUMMY_BISNIS.bisnis_nama}</p>
+                <p className="text-sm font-bold text-[#16A34A] mt-0.5">{bisnisNama}</p>
               </div>
 
               {/* Card info kunjungan */}
@@ -238,42 +235,50 @@ export default function FormMember({ token }) {
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <p className="text-xs text-gray-400 font-medium">Kunjungan kamu ke-</p>
-                    <p className="text-4xl font-black text-gray-900 mt-0.5">{result.reward.kunjungan_saat_ini}</p>
+                    <p className="text-4xl font-black text-gray-900 mt-0.5">{result.member_count}</p>
                   </div>
-                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-2xl ${result.reward.is_eligible ? "bg-yellow-100" : "bg-[#F0FDF4]"
+                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-2xl ${result.reward?.is_eligible ? "bg-yellow-100" : "bg-[#F0FDF4]"
                     }`}>
-                    {result.reward.is_eligible ? <LuGift size={24} className="text-yellow-600" /> : <LuStar size={24} className="text-[#16A34A]" />}
+                    {result.reward?.is_eligible ? <LuGift size={24} className="text-yellow-600" /> : <LuStar size={24} className="text-[#16A34A]" />}
                   </div>
                 </div>
 
-                {/* Progress bar reward */}
-                <div className="mb-2">
-                  <div className="flex justify-between text-xs mb-1.5">
-                    <span className="text-gray-400 font-medium">Progress reward</span>
-                    <span className="font-bold text-gray-600">
-                      {result.reward.kunjungan_saat_ini}/{result.reward.kunjungan_dibutuhkan} kunjungan
-                    </span>
-                  </div>
-                  <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
-                    <div
-                      className={`h-full rounded-full transition-all duration-700 ${result.reward.is_eligible ? "bg-yellow-400" : "bg-[#F0FDF4]0"
-                        }`}
-                      style={{ width: `${progress}%` }}
-                    />
-                  </div>
-                </div>
+                {result.reward ? (
+                  <>
+                    {/* Progress bar reward */}
+                    <div className="mb-2">
+                      <div className="flex justify-between text-xs mb-1.5">
+                        <span className="text-gray-400 font-medium">Progress reward</span>
+                        <span className="font-bold text-gray-600">
+                          {result.reward.kunjungan_saat_ini}/{result.reward.kunjungan_dibutuhkan} kunjungan
+                        </span>
+                      </div>
+                      <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all duration-700 ${result.reward.is_eligible ? "bg-yellow-400" : "bg-[#22C55E]"
+                            }`}
+                          style={{ width: `${progress}%` }}
+                        />
+                      </div>
+                    </div>
 
-                {/* Status reward */}
-                {result.reward.is_eligible ? (
-                  <div className="mt-3 bg-yellow-50 border border-yellow-200 rounded-2xl px-4 py-3 text-center">
-                    <p className="text-sm font-bold text-yellow-700 flex items-center justify-center gap-1.5"><LuPartyPopper size={14} /> Kamu layak dapat reward!</p>
-                    <p className="text-xs text-yellow-600 mt-0.5">Tunjukkan halaman ini ke kasir</p>
-                  </div>
+                    {/* Status reward */}
+                    {result.reward.is_eligible ? (
+                      <div className="mt-3 bg-yellow-50 border border-yellow-200 rounded-2xl px-4 py-3 text-center">
+                        <p className="text-sm font-bold text-yellow-700 flex items-center justify-center gap-1.5"><LuPartyPopper size={14} /> Kamu layak dapat reward!</p>
+                        <p className="text-xs text-yellow-600 mt-0.5">Tunjukkan halaman ini ke kasir</p>
+                      </div>
+                    ) : (
+                      <div className="mt-3 bg-[#F0FDF4] rounded-2xl px-4 py-3 text-center">
+                        <p className="text-xs text-[#15803D] font-medium">
+                          Butuh <strong>{result.reward.kunjungan_dibutuhkan - result.reward.kunjungan_saat_ini} kunjungan lagi</strong> untuk dapat reward
+                        </p>
+                      </div>
+                    )}
+                  </>
                 ) : (
-                  <div className="mt-3 bg-[#F0FDF4] rounded-2xl px-4 py-3 text-center">
-                    <p className="text-xs text-[#15803D] font-medium">
-                      Butuh <strong>{result.reward.kunjungan_dibutuhkan - result.reward.kunjungan_saat_ini} kunjungan lagi</strong> untuk dapat reward
-                    </p>
+                  <div className="mt-1 bg-[#F0FDF4] rounded-2xl px-4 py-3 text-center">
+                    <p className="text-xs text-[#15803D] font-medium">Terima kasih! Kunjungan kamu sudah tercatat.</p>
                   </div>
                 )}
               </div>

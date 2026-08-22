@@ -47,7 +47,7 @@ class ProductController extends Controller
             return response()->json([
                 'message' => 'invalid field',
                 'errors'  => $validate->errors()
-            ]);
+            ], 422);
         }
 
         $imageUrl = null;
@@ -101,13 +101,13 @@ class ProductController extends Controller
             return response()->json([
                 'message' => 'invalid field',
                 'errors'  => $validate->errors()
-            ]);
+            ], 422);
         }
 
         $updateData = $request->only(['produk_nama', 'produk_harga', 'net_profit_margin']);
 
         if ($request->hasFile('produk_image')) {
-            $this->removeImage($product->produk_image_url);
+            $this->deleteImageFile($product->produk_image_url);
             $updateData['produk_image_url'] = $this->uploadImage(
                 $request->file('produk_image'),
                 $product->bisnis_id
@@ -134,7 +134,7 @@ class ProductController extends Controller
             return $this->error('Produk tidak memiliki gambar', 404);
         }
 
-        $this->removeImage($product->produk_image_url);
+        $this->deleteImageFile($product->produk_image_url);
         $product->update(['produk_image_url' => null]);
 
         return $this->success('Gambar produk berhasil dihapus');
@@ -152,7 +152,7 @@ class ProductController extends Controller
             return $this->error('Akses Dilarang', 403);
         }
 
-        $this->removeImage($product->produk_image_url);
+        $this->deleteImageFile($product->produk_image_url);
         $product->delete();
 
         return $this->success('Produk berhasil dihapus');
@@ -171,7 +171,7 @@ class ProductController extends Controller
         return Storage::url($filename);
     }
 
-    private function removeImage(?string $imageUrl): void
+    private function deleteImageFile(?string $imageUrl): void
     {
         if (!$imageUrl) return;
         $path = str_replace('/storage/', '', parse_url($imageUrl, PHP_URL_PATH));

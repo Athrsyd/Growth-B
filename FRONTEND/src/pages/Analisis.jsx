@@ -1,35 +1,6 @@
-import { useState } from "react";
-import { LuTrophy, LuTriangleAlert, LuZap, LuTarget, LuSparkles, LuMap, LuChartBar, LuClipboardList, LuCheck, LuPencilLine, LuInbox} from "react-icons/lu";
-
-// ─── Dummy data ───────────────────────────────────────────────
-const DUMMY_PRODUK = [
-  { id: 1, produk_nama: "Nasi Ayam Goreng", produk_harga: 15000 },
-  { id: 2, produk_nama: "Es Teh Manis",     produk_harga: 5000  },
-  { id: 3, produk_nama: "Nasi Capcay",      produk_harga: 18000 },
-  { id: 4, produk_nama: "Jus Alpukat",      produk_harga: 12000 },
-];
-
-const DUMMY_DATA_HARIAN = [
-  { id: 7, tanggal: "2024-07-14", pendapatan: 1350000, pengeluaran: 520000, jumlah_pembeli: 87, produk_terlaris: "Nasi Ayam Goreng", kendala: "Kompor sempat mati 1 jam" },
-  { id: 6, tanggal: "2024-07-13", pendapatan: 980000,  pengeluaran: 430000, jumlah_pembeli: 63, produk_terlaris: "Nasi Ayam Goreng", kendala: null },
-  { id: 5, tanggal: "2024-07-12", pendapatan: 1120000, pengeluaran: 470000, jumlah_pembeli: 74, produk_terlaris: "Es Teh Manis",     kendala: null },
-  { id: 4, tanggal: "2024-07-11", pendapatan: 890000,  pengeluaran: 390000, jumlah_pembeli: 58, produk_terlaris: "Nasi Capcay",      kendala: "Bahan baku terlambat" },
-  { id: 3, tanggal: "2024-07-10", pendapatan: 1450000, pengeluaran: 560000, jumlah_pembeli: 95, produk_terlaris: "Nasi Ayam Goreng", kendala: null },
-  { id: 2, tanggal: "2024-07-09", pendapatan: 760000,  pengeluaran: 340000, jumlah_pembeli: 49, produk_terlaris: "Es Teh Manis",     kendala: null },
-  { id: 1, tanggal: "2024-07-08", pendapatan: 1100000, pengeluaran: 450000, jumlah_pembeli: 71, produk_terlaris: "Nasi Ayam Goreng", kendala: null },
-];
-
-const DUMMY_ANALISA = [
-  { id: 2, tipe_eval: "eval", orientasi_pakai: "roadmap", pesan: "Selama periode 1–14 Juli 2024, rata-rata pendapatan harian mencapai Rp 1.092.857 dengan 71 pembeli per hari. Produk terlaris adalah Nasi Ayam Goreng yang dominan selama 5 dari 7 hari. Tingkat pengeluaran masih 39%, perlu ditekan ke bawah 30%.", created_at: "2024-07-15T06:00:00Z" },
-  { id: 3, tipe_eval: "plan",  orientasi_pakai: "roadmap", pesan: "1. Buat bundling Nasi Ayam + Es Teh dengan harga spesial Rp 18.000.\n2. Lakukan pengecekan peralatan masak setiap pagi.\n3. Aktifkan promosi QR membership untuk pelanggan yang sudah kunjung lebih dari 8 kali.", created_at: "2024-07-15T06:01:00Z" },
-  { id: 1, tipe_eval: "eval",  orientasi_pakai: "tujuan_bisnis", pesan: "Periode 15–28 Juni menunjukkan performa stabil dengan rata-rata 68 pembeli/hari. Total laba bersih Rp 8.2 juta.", created_at: "2024-07-01T06:00:00Z" },
-];
-
-const SIKLUS_INFO = {
-  dari: "2024-07-01", sampai: "2024-07-14", siklus_ke: 3,
-  jumlah_data_terisi: 7, jumlah_data_dibutuhkan: 14,
-  data_lengkap: false, sudah_dianalisa: false, bisa_generate: false,
-};
+import { useState, useEffect, useCallback } from "react";
+import api from "../api/axios";
+import { LuTrophy, LuTriangleAlert, LuZap, LuTarget, LuSparkles, LuMap, LuChartBar, LuClipboardList, LuCheck, LuPencilLine, LuInbox, LuCalendar} from "react-icons/lu";
 
 // ─── Helpers ──────────────────────────────────────────────────
 const fmt     = v => new Intl.NumberFormat("id-ID").format(v);
@@ -229,16 +200,23 @@ function DetailHariCard({ tanggal, data, onInput, onClose }) {
 // ─── Wizard Modal ─────────────────────────────────────────────
 const WIZARD_STEPS = ["Info Hari", "Penjualan", "Catatan"];
 
-function InputHarianModal({ tanggalAwal, onClose, onSave }) {
+function InputHarianModal({ tanggalAwal, existingData, onClose, onSave, produkList }) {
   const [step, setStep] = useState(0);
   const [form, setForm] = useState({
-    tanggal: tanggalAwal || new Date().toISOString().split("T")[0],
-    pendapatan: "", pengeluaran: "", jumlah_pembeli: "",
-    produk_terlaris_id: "",
-    penjualan: DUMMY_PRODUK.map(p => ({ produk_id: p.id, produk_nama: p.produk_nama, produk_harga: p.produk_harga, qty: "" })),
-    kendala: "", note: "",
+    tanggal: existingData?.tanggal || tanggalAwal || new Date().toISOString().split("T")[0],
+    pendapatan: existingData?.pendapatan?.toString() ?? "",
+    pengeluaran: existingData?.pengeluaran?.toString() ?? "",
+    jumlah_pembeli: existingData?.jumlah_pembeli?.toString() ?? "",
+    produk_terlaris_id: existingData?.produk_terlaris_id?.toString() ?? "",
+    penjualan: produkList.map(p => {
+      const existing = existingData?.penjualan?.find(pj => pj.produk_id === p.id);
+      return { produk_id: p.id, produk_nama: p.produk_nama, produk_harga: p.produk_harga, qty: existing ? String(existing.qty) : "" };
+    }),
+    kendala: existingData?.kendala || "", note: existingData?.note || "",
   });
   const [errors, setErrors] = useState({});
+  const [saving, setSaving] = useState(false);
+  const [globalErr, setGlobalErr] = useState("");
 
   const set = (k, v) => { setForm(f => ({...f,[k]:v})); setErrors(e => { const n={...e}; delete n[k]; return n; }); };
   const setPenjualan = (idx, qty) => setForm(f => ({ ...f, penjualan: f.penjualan.map((p,i) => i===idx ? {...p,qty} : p) }));
@@ -257,7 +235,30 @@ function InputHarianModal({ tanggalAwal, onClose, onSave }) {
 
   const next   = () => { if (validate()) setStep(s => s+1); };
   const back   = () => { setErrors({}); setStep(s => s-1); };
-  const submit = () => { onSave(form); onClose(); };
+  const submit = async () => {
+    setGlobalErr("");
+    setSaving(true);
+    try {
+      const payload = {
+        tanggal: form.tanggal,
+        pendapatan: Number(form.pendapatan),
+        pengeluaran: Number(form.pengeluaran),
+        jumlah_pembeli: Number(form.jumlah_pembeli),
+        produk_terlaris_id: form.produk_terlaris_id ? Number(form.produk_terlaris_id) : null,
+        kendala: form.kendala || null,
+        note: form.note || null,
+        penjualan: form.penjualan
+          .filter(p => Number(p.qty) > 0)
+          .map(p => ({ produk_id: p.produk_id, qty: Number(p.qty) })),
+      };
+      await onSave(payload, existingData?.id ?? null);
+      onClose();
+    } catch (err) {
+      setGlobalErr(err.message || "Gagal menyimpan data");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const totalPenjualan = form.penjualan.reduce((sum,p) => sum + (parseInt(p.qty)||0)*p.produk_harga, 0);
 
@@ -324,7 +325,7 @@ function InputHarianModal({ tanggalAwal, onClose, onSave }) {
                 <select value={form.produk_terlaris_id} onChange={e=>set("produk_terlaris_id",e.target.value)}
                   className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-[#22C55E] text-sm outline-none appearance-none">
                   <option value="">— Pilih produk —</option>
-                  {DUMMY_PRODUK.map(p=><option key={p.id} value={p.id}>{p.produk_nama}</option>)}
+                  {produkList.map(p=><option key={p.id} value={p.id}>{p.produk_nama}</option>)}
                 </select>
               </div>
             </div>
@@ -388,16 +389,25 @@ function InputHarianModal({ tanggalAwal, onClose, onSave }) {
         </div>
 
         {/* Footer */}
+        {globalErr && (
+          <div className="px-5 pt-2 shrink-0">
+            <p className="text-xs text-red-500 bg-red-50 border border-red-100 rounded-lg px-3 py-2">{globalErr}</p>
+          </div>
+        )}
         <div className="flex gap-3 px-5 py-4 border-t border-gray-100 shrink-0">
           {step > 0
-            ? <button onClick={back} className="flex-1 py-2.5 rounded-xl text-sm font-medium text-gray-500 border border-gray-200 hover:bg-gray-50 transition-all">← Kembali</button>
-            : <button onClick={onClose} className="flex-1 py-2.5 rounded-xl text-sm font-medium text-gray-500 border border-gray-200 hover:bg-gray-50 transition-all">Batal</button>
+            ? <button onClick={back} disabled={saving} className="flex-1 py-2.5 rounded-xl text-sm font-medium text-gray-500 border border-gray-200 hover:bg-gray-50 transition-all disabled:opacity-50">← Kembali</button>
+            : <button onClick={onClose} disabled={saving} className="flex-1 py-2.5 rounded-xl text-sm font-medium text-gray-500 border border-gray-200 hover:bg-gray-50 transition-all disabled:opacity-50">Batal</button>
           }
           {step < WIZARD_STEPS.length - 1
-            ? <button onClick={next} className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-[#22C55E] text-white hover:bg-[#15803D] active:scale-95 transition-all">Lanjut →</button>
-            : <button onClick={submit} className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-[#16A34A] text-white hover:bg-[#15803D] active:scale-95 transition-all flex items-center justify-center gap-1.5">
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
-                Simpan Data
+            ? <button onClick={next} disabled={saving} className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-[#22C55E] text-white hover:bg-[#15803D] active:scale-95 transition-all disabled:opacity-60">Lanjut →</button>
+            : <button onClick={submit} disabled={saving} className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-[#16A34A] text-white hover:bg-[#15803D] active:scale-95 transition-all flex items-center justify-center gap-1.5 disabled:opacity-60">
+                {saving ? (
+                  <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+                ) : (
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
+                )}
+                {saving ? "Menyimpan…" : "Simpan Data"}
               </button>
           }
         </div>
@@ -407,7 +417,7 @@ function InputHarianModal({ tanggalAwal, onClose, onSave }) {
 }
 
 // ─── Tab: Input Harian ────────────────────────────────────────
-function TabInputHarian({ onOpenModal }) {
+function TabInputHarian({ onOpenModal, dataHarian, siklusInfo, loading }) {
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedData, setSelectedData] = useState(null);
 
@@ -417,7 +427,15 @@ function TabInputHarian({ onOpenModal }) {
     setSelectedData(data || null);
   };
 
-  const progress = (SIKLUS_INFO.jumlah_data_terisi / SIKLUS_INFO.jumlah_data_dibutuhkan) * 100;
+  if (loading || !siklusInfo) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <svg className="w-6 h-6 animate-spin text-[#22C55E]" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+      </div>
+    );
+  }
+
+  const progress = (siklusInfo.jumlah_data_terisi / siklusInfo.jumlah_data_dibutuhkan) * 100;
 
   return (
     <div className="space-y-4">
@@ -425,22 +443,22 @@ function TabInputHarian({ onOpenModal }) {
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm px-4 py-3">
         <div className="flex items-center justify-between mb-2">
           <div>
-            <p className="text-xs text-gray-400">Siklus #{SIKLUS_INFO.siklus_ke} · {fmtDate(SIKLUS_INFO.dari)} — {fmtDate(SIKLUS_INFO.sampai)}</p>
+            <p className="text-xs text-gray-400">Siklus #{siklusInfo.siklus_ke} · {fmtDate(siklusInfo.dari)} — {fmtDate(siklusInfo.sampai)}</p>
           </div>
-          <p className="text-sm font-black text-[#15803D]">{SIKLUS_INFO.jumlah_data_terisi}<span className="text-xs font-semibold text-gray-400">/{SIKLUS_INFO.jumlah_data_dibutuhkan}</span></p>
+          <p className="text-sm font-black text-[#15803D]">{siklusInfo.jumlah_data_terisi}<span className="text-xs font-semibold text-gray-400">/{siklusInfo.jumlah_data_dibutuhkan}</span></p>
         </div>
         <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
           <div className="h-full bg-[#22C55E] rounded-full transition-all duration-700" style={{ width:`${progress}%` }}/>
         </div>
-        {!SIKLUS_INFO.data_lengkap && (
-          <p className="mt-2 text-xs text-[#22C55E] font-medium">Lengkapi {SIKLUS_INFO.jumlah_data_dibutuhkan - SIKLUS_INFO.jumlah_data_terisi} hari lagi untuk generate analisa AI</p>
+        {!siklusInfo.data_lengkap && (
+          <p className="mt-2 text-xs text-[#22C55E] font-medium">Lengkapi {siklusInfo.jumlah_data_dibutuhkan - siklusInfo.jumlah_data_terisi} hari lagi untuk generate analisa AI</p>
         )}
       </div>
 
       {/* Kalender */}
       <Kalender
-        dataHarian={DUMMY_DATA_HARIAN}
-        siklusInfo={SIKLUS_INFO}
+        dataHarian={dataHarian}
+        siklusInfo={siklusInfo}
         onPilihTanggal={handlePilihTanggal}
       />
 
@@ -449,14 +467,18 @@ function TabInputHarian({ onOpenModal }) {
         <DetailHariCard
           tanggal={selectedDate}
           data={selectedData}
-          onInput={(tgl) => onOpenModal(tgl)}
+          onInput={(tgl) => onOpenModal(tgl, selectedData)}
           onClose={() => { setSelectedDate(null); setSelectedData(null); }}
         />
       )}
 
       {/* Tombol input hari ini shortcut */}
       {!selectedDate && (
-        <button onClick={() => onOpenModal(toYMD(new Date()))}
+        <button onClick={() => {
+            const todayYmd = toYMD(new Date());
+            const todayData = dataHarian.find(d => d.tanggal === todayYmd);
+            onOpenModal(todayYmd, todayData);
+          }}
           className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-[#22C55E] text-white text-sm font-semibold shadow-sm shadow-[#BBF7D0] hover:bg-[#15803D] active:scale-95 transition-all">
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"/></svg>
           Input Data Hari Ini
@@ -467,27 +489,33 @@ function TabInputHarian({ onOpenModal }) {
 }
 
 // ─── Tab: Generate ────────────────────────────────────────────
-function TabGenerate() {
-  const [loading, setLoading] = useState(false);
-  const [done, setDone]       = useState(false);
-  const progress = (SIKLUS_INFO.jumlah_data_terisi / SIKLUS_INFO.jumlah_data_dibutuhkan) * 100;
+function TabGenerate({ siklusInfo, onGenerate, generating, justGenerated }) {
+  if (!siklusInfo) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <svg className="w-6 h-6 animate-spin text-[#22C55E]" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+      </div>
+    );
+  }
+
+  const progress = (siklusInfo.jumlah_data_terisi / siklusInfo.jumlah_data_dibutuhkan) * 100;
 
   return (
     <div className="space-y-5">
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-        <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3">Status Siklus #{SIKLUS_INFO.siklus_ke}</p>
+        <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3">Status Siklus #{siklusInfo.siklus_ke}</p>
         <div className="flex items-end gap-2 mb-3">
-          <span className="text-3xl font-black text-gray-900">{SIKLUS_INFO.jumlah_data_terisi}</span>
-          <span className="text-sm text-gray-400 mb-1">/ {SIKLUS_INFO.jumlah_data_dibutuhkan} hari terisi</span>
+          <span className="text-3xl font-black text-gray-900">{siklusInfo.jumlah_data_terisi}</span>
+          <span className="text-sm text-gray-400 mb-1">/ {siklusInfo.jumlah_data_dibutuhkan} hari terisi</span>
         </div>
         <div className="w-full h-3 bg-gray-100 rounded-full overflow-hidden mb-2">
           <div className={`h-full rounded-full transition-all duration-700 ${progress>=100?"bg-[#16A34A]":"bg-[#22C55E]"}`} style={{width:`${progress}%`}}/>
         </div>
         <div className="grid grid-cols-3 gap-2 mt-4">
           {[
-            {label:"Data terisi",value:SIKLUS_INFO.jumlah_data_terisi,icon:"📅"},
-            {label:"Dibutuhkan", value:SIKLUS_INFO.jumlah_data_dibutuhkan,icon:"target"},
-            {label:"Sisa hari",  value:SIKLUS_INFO.jumlah_data_dibutuhkan-SIKLUS_INFO.jumlah_data_terisi,icon:"⏳"},
+            {label:"Data terisi",value:siklusInfo.jumlah_data_terisi,icon:"📅"},
+            {label:"Dibutuhkan", value:siklusInfo.jumlah_data_dibutuhkan,icon:"target"},
+            {label:"Sisa hari",  value:Math.max(0, siklusInfo.jumlah_data_dibutuhkan-siklusInfo.jumlah_data_terisi),icon:"⏳"},
           ].map(s=>(
             <div key={s.label} className="bg-gray-50 rounded-xl p-3 text-center">
               <span className="text-lg">{s.icon}</span>
@@ -503,12 +531,12 @@ function TabGenerate() {
         <p className="text-xs text-[#15803D] leading-relaxed">AI akan menganalisa berdasarkan <strong>roadmap aktif</strong> kamu. Jika tidak ada roadmap, analisa mengacu pada tujuan bisnis.</p>
       </div>
 
-      {!done ? (
-        <button onClick={() => { setLoading(true); setTimeout(()=>{setLoading(false);setDone(true);},2500); }}
-          disabled={loading || !SIKLUS_INFO.bisa_generate}
-          className={`w-full py-4 rounded-2xl text-sm font-bold transition-all flex items-center justify-center gap-2 ${SIKLUS_INFO.bisa_generate?"bg-[#22C55E] text-white shadow-sm shadow-[#BBF7D0] hover:bg-[#15803D] active:scale-95":"bg-gray-100 text-gray-400 cursor-not-allowed"}`}>
-          {loading ? (<><svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>Gemini sedang menganalisa…</>)
-            : (<><LuSparkles size={16} />{SIKLUS_INFO.bisa_generate?"Generate Analisa AI":`Data kurang ${SIKLUS_INFO.jumlah_data_dibutuhkan-SIKLUS_INFO.jumlah_data_terisi} hari lagi`}</>)}
+      {!justGenerated ? (
+        <button onClick={onGenerate}
+          disabled={generating || !siklusInfo.bisa_generate}
+          className={`w-full py-4 rounded-2xl text-sm font-bold transition-all flex items-center justify-center gap-2 ${siklusInfo.bisa_generate?"bg-[#22C55E] text-white shadow-sm shadow-[#BBF7D0] hover:bg-[#15803D] active:scale-95":"bg-gray-100 text-gray-400 cursor-not-allowed"}`}>
+          {generating ? (<><svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>Gemini sedang menganalisa…</>)
+            : (<><LuSparkles size={16} />{siklusInfo.bisa_generate?"Generate Analisa AI":siklusInfo.sudah_diAnalisis ? "Sudah dianalisa siklus ini" : `Data kurang ${siklusInfo.jumlah_data_dibutuhkan-siklusInfo.jumlah_data_terisi} hari lagi`}</>)}
         </button>
       ) : (
         <div className="bg-[#F0FDF4] border border-[#BBF7D0] rounded-2xl p-5 text-center space-y-2">
@@ -522,8 +550,8 @@ function TabGenerate() {
         <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">Syarat Generate</p>
         <div className="space-y-2">
           {[
-            {label:"Data 14 hari terisi semua",    ok:SIKLUS_INFO.data_lengkap},
-            {label:"Belum dianalisa siklus ini",   ok:!SIKLUS_INFO.sudah_dianalisa},
+            {label:"Data 14 hari terisi semua",    ok:siklusInfo.data_lengkap},
+            {label:"Belum dianalisa siklus ini",   ok:!siklusInfo.sudah_diAnalisis},
             {label:"Ada koneksi internet",         ok:true},
           ].map(s=>(
             <div key={s.label} className="flex items-center gap-2.5">
@@ -540,9 +568,28 @@ function TabGenerate() {
 }
 
 // ─── Tab: Riwayat ─────────────────────────────────────────────
-function TabRiwayat() {
+function TabRiwayat({ riwayat, loading }) {
   const [expanded, setExpanded] = useState(null);
-  const grouped = DUMMY_ANALISA.reduce((acc,a) => {
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <svg className="w-6 h-6 animate-spin text-[#22C55E]" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+      </div>
+    );
+  }
+
+  if (riwayat.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 text-center">
+        <div className="w-14 h-14 rounded-2xl bg-[#F0FDF4] flex items-center justify-center mb-3"><LuSparkles size={28} className="text-[#22C55E]" /></div>
+        <p className="text-base font-semibold text-gray-700 mb-1">Belum ada riwayat analisa</p>
+        <p className="text-sm text-gray-400">Generate analisa pertamamu di tab Generate setelah data 14 hari lengkap.</p>
+      </div>
+    );
+  }
+
+  const grouped = riwayat.reduce((acc,a) => {
     const key = a.created_at.split("T")[0];
     if (!acc[key]) acc[key] = [];
     acc[key].push(a);
@@ -603,17 +650,95 @@ function TabRiwayat() {
 
 // ─── Main Page ────────────────────────────────────────────────
 const TABS = [
-  { key:"input",    label:"Input Harian", icon:"📅" },
-  { key:"generate", label:"Generate",     icon:"sparkles" },
-  { key:"riwayat",  label:"Riwayat",      icon:"clipboard" },
+  { key:"input",    label:"Input Harian", icon:<LuCalendar size={14} /> },
+  { key:"generate", label:"Generate",     icon:<LuSparkles size={14} /> },
+  { key:"riwayat",  label:"Riwayat",      icon:<LuClipboardList size={14} /> },
 ];
 
 export default function Analisis() {
+  // ── API state ──
+  const [produkList, setProdukList]   = useState([])
+  const [siklist, setSiklist]         = useState(null)   // /analisa/status (normalized)
+  const [dataHarian, setDataHarian]   = useState([])
+  const [riwayat, setRiwayat]         = useState([])
+  const [latestAI, setLatestAI]       = useState(null)
+  const [apiLoading, setApiLoading]   = useState(true)
+  const [generating, setGenerating]   = useState(false)
+  const [justGenerated, setJustGenerated] = useState(false)
+  const [generateErr, setGenerateErr] = useState("")
+
+  const fetchAll = useCallback(async () => {
+    setApiLoading(true)
+    try {
+      const [statusRes, latestRes, riwayatRes, produkRes, harianRes] = await Promise.all([
+        api.get('/analisa/status').catch(() => null),
+        api.get('/analisa/latest').catch(() => null),
+        api.get('/analisa?per_page=50').catch(() => null),
+        api.get('/produk?per_page=100').catch(() => null),
+        api.get('/data-harian?per_page=200').catch(() => null),
+      ])
+      if (statusRes?.data?.data) {
+        const s = statusRes.data.data
+        setSiklist({
+          dari: s.periode.dari,
+          sampai: s.periode.sampai,
+          siklus_ke: s.periode.siklus_ke,
+          jumlah_data_terisi: s.jumlah_data_terisi,
+          jumlah_data_dibutuhkan: s.jumlah_data_dibutuhkan,
+          data_lengkap: s.data_lengkap,
+          sudah_diAnalisis: s.sudah_diAnalisis,
+          bisa_generate: s.bisa_generate,
+        })
+      }
+      if (latestRes?.data?.data)  setLatestAI(latestRes.data.data)
+      if (riwayatRes?.data?.data) setRiwayat(riwayatRes.data.data)
+      if (produkRes?.data?.data)  setProdukList(produkRes.data.data)
+      if (harianRes?.data?.data)  setDataHarian(harianRes.data.data)
+    } finally {
+      setApiLoading(false)
+    }
+  }, [])
+
+  useEffect(() => { fetchAll() }, [fetchAll])
+
+  const handleGenerate = async () => {
+    setGenerating(true)
+    setGenerateErr("")
+    try {
+      await api.post('/analisa/generate')
+      setJustGenerated(true)
+      await fetchAll()
+    } catch (err) {
+      setGenerateErr(err.response?.data?.message ?? 'Gagal generate analisis')
+    } finally {
+      setGenerating(false)
+    }
+  }
+
+  const handleSubmitHarian = async (payload, existingId) => {
+    try {
+      if (existingId) {
+        await api.put(`/data-harian/${existingId}`, payload)
+      } else {
+        await api.post('/data-harian', payload)
+      }
+      await fetchAll()
+    } catch (err) {
+      const msg = err.response?.data?.message ?? 'Gagal menyimpan data'
+      throw new Error(msg)
+    }
+  }
+
   const [tab, setTab]             = useState("input");
   const [showModal, setShowModal] = useState(false);
   const [modalTanggal, setModalTanggal] = useState(null);
+  const [modalExisting, setModalExisting] = useState(null);
 
-  const openModal = (tgl) => { setModalTanggal(tgl); setShowModal(true); };
+  const openModal = (tgl, existing) => {
+    setModalTanggal(tgl);
+    setModalExisting(existing || null);
+    setShowModal(true);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -624,12 +749,12 @@ export default function Analisis() {
         </div>
         <div className="flex gap-0 max-w-2xl lg:mx-0">
           {TABS.map(t => (
-            <button key={t.key} onClick={() => setTab(t.key)}
+            <button key={t.key} onClick={() => { setTab(t.key); if (t.key === "generate") setJustGenerated(false) }}
               className={`flex items-center gap-1.5 px-4 py-2.5 text-xs font-semibold border-b-2 transition-all whitespace-nowrap ${tab===t.key?"border-[#22C55E] text-[#15803D]":"border-transparent text-gray-400 hover:text-gray-600"}`}>
               <span>{t.icon}</span>{t.label}
-              {t.key==="input" && (
+              {t.key==="input" && siklist && (
                 <span className={`text-xs px-1.5 py-0.5 rounded-full font-bold ${tab==="input"?"bg-[#DCFCE7] text-[#15803D]":"bg-gray-100 text-gray-400"}`}>
-                  {SIKLUS_INFO.jumlah_data_terisi}/{SIKLUS_INFO.jumlah_data_dibutuhkan}
+                  {siklist.jumlah_data_terisi}/{siklist.jumlah_data_dibutuhkan}
                 </span>
               )}
             </button>
@@ -638,16 +763,25 @@ export default function Analisis() {
       </div>
 
       <div className="px-4 lg:px-8 pt-5 pb-28 lg:pb-10 max-w-2xl lg:mx-0">
-        {tab==="input"    && <TabInputHarian onOpenModal={openModal} />}
-        {tab==="generate" && <TabGenerate />}
-        {tab==="riwayat"  && <TabRiwayat />}
+        {tab==="input"    && <TabInputHarian onOpenModal={openModal} dataHarian={dataHarian} siklusInfo={siklist} loading={apiLoading} />}
+        {tab==="generate" && (
+          <>
+            {generateErr && (
+              <div className="mb-4 bg-red-50 border border-red-100 text-red-600 text-xs rounded-xl px-3 py-2.5">{generateErr}</div>
+            )}
+            <TabGenerate siklusInfo={siklist} onGenerate={handleGenerate} generating={generating} justGenerated={justGenerated} />
+          </>
+        )}
+        {tab==="riwayat"  && <TabRiwayat riwayat={riwayat} loading={apiLoading} />}
       </div>
 
       {showModal && (
         <InputHarianModal
           tanggalAwal={modalTanggal}
-          onClose={() => { setShowModal(false); setModalTanggal(null); }}
-          onSave={data => console.log("Simpan:", data)}
+          existingData={modalExisting}
+          onClose={() => { setShowModal(false); setModalTanggal(null); setModalExisting(null); }}
+          onSave={handleSubmitHarian}
+          produkList={produkList}
         />
       )}
     </div>
